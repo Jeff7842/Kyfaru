@@ -1,6 +1,30 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import CeraCy from 'next/font/local';
+import SInhala from 'next/font/local';
+
+
+const ceraCy = CeraCy({
+  
+  src: [
+    { path: '/fonts/Cera-CY-Regular.ttf', weight: '200', style: 'thin' },       
+    { path: '/fonts/Cera-CY-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '/fonts/Cera-CY-Bold.ttf', weight: '700', style: 'bold' },
+  ],
+  display: 'swap',
+ variable: "--font-cera-cy", 
+});
+
+const sinhala = SInhala({
+  src: [
+    { path: '/fonts/SinhalaMN.woff', weight: '200', style: 'thin' },
+    { path: '/fonts/SinhalaMN.woff', weight: '400', style: 'normal' },
+    { path: '/fonts/SinhalaMN-Bold.woff', weight: '700', style: 'bold' },
+  ],
+  display: 'swap',
+  variable: "--font-sinhala",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${ceraCy.variable} ${sinhala.variable} antialiased`}
       >
         {children}
       </body>
