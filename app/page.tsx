@@ -103,7 +103,7 @@ const containerRef = useRef<HTMLDivElement>(null);
           <div>
             {/* Socials content */}
             <div className="relative z-50 ">
-              <div className="social-content flex flex-col pl-8 space-y-8 h-20">
+              <div className="social-content flex flex-col pl-8 space-y-8 h-25">
                 {/* Facebook */}
                 <Link
                   href="https://facebook.com"
