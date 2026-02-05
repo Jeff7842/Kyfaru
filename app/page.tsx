@@ -108,7 +108,7 @@ const containerRef = useRef<HTMLDivElement>(null);
                   style={{ "--delay": "0s" } as React.CSSProperties}
                 >
                   <svg
-                    className="w-[22px] h-[22px] text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300 pointer-events-auto"
+                    className="w-5.5 h-5.5 text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300 pointer-events-auto"
                     viewBox="0 0 24 24"
                     fill="currentColor"
                   >
@@ -124,7 +124,7 @@ const containerRef = useRef<HTMLDivElement>(null);
                   style={{ "--delay": "0.5s" } as React.CSSProperties}
                 >
                   <svg
-                    className="w-[22px] h-[22px] text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300"
+                    className="w-5.5 h-5.5 text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300"
 
                     viewBox="0 0 24 24"
                     fill="currentColor"
@@ -141,7 +141,7 @@ const containerRef = useRef<HTMLDivElement>(null);
                   style={{ "--delay": "1s" } as React.CSSProperties}
                 >
                   <svg
-                    className="w-[22px] h-[22px] text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300"
+                    className="w-5.5 h-5.5 text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300"
                     viewBox="0 0 24 24"
                     fill="currentColor"
                   >
@@ -157,7 +157,7 @@ const containerRef = useRef<HTMLDivElement>(null);
                   style={{ "--delay": "1.2s" } as React.CSSProperties}
                 >
                   <svg
-                    className="w-[22px] h-[22px] stroke-[#fbffe2] group-hover:stroke-[#efbc31] transition-colors duration-300"
+                    className="w-5.5 h-5.5 stroke-[#fbffe2] group-hover:stroke-[#efbc31] transition-colors duration-300"
                     viewBox="0 0 24 24"
                     fill="none"
                     strokeWidth="2"
@@ -171,7 +171,7 @@ const containerRef = useRef<HTMLDivElement>(null);
             </div>
             <div className="relative">
               {/* Sticky container */}
-              <div className="absolute bottom-[-90px] right-25 flex flex-col items-center gap-3 z-0 pointer-events-none">
+              <div className="absolute -bottom-22.5 right-25 flex flex-col items-center gap-3 z-0 pointer-events-none">
                 {" "}
                 <div className="flex flex-col items-center gap-3 sticky">
                   {" "}
