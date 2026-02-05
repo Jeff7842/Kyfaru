@@ -8,6 +8,7 @@ import "../components/styles/home.css";
 import Grid from "../components/grid";
 import { styled } from "styled-components";
 import { useEffect, useRef } from "react";
+import BackgroundPattern from "../components/BackgroundPattern"
 
 export default function Home() {
 
@@ -49,7 +50,9 @@ const containerRef = useRef<HTMLDivElement>(null);
 
   return (
            
-    <div className="bg-[#0c3413] min-h-screen overflow-x-hidden overflow-y-auto ">
+    <div className="min-h-screen overflow-x-hidden  scrollbar-thin-yellow">
+       
+
       <div className="absolute inset-0 pointer-events-none z-20 opacity-0 fade-in-opacity bg-blend-soft-light pulse-in-opacity">
         <Image
           className="brightness-95 relative -left-20 -top-40 w-full h-full"
@@ -61,7 +64,9 @@ const containerRef = useRef<HTMLDivElement>(null);
       </div>
 
       <Header />
-      <section className="text-center justify-center pt-85 pb-40 px-4">
+      <section className="text-center justify-center pt-85 pb-40 px-4 bg-[#0c3413]">
+{/* SVG BACKGROUND */}
+      <BackgroundPattern />
         <main>
           {/* Main content goes here */}
 
@@ -105,7 +110,7 @@ const containerRef = useRef<HTMLDivElement>(null);
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group block w-fit cursor-pointer fade-up"
-                  style={{ "--delay": "0s" } as React.CSSProperties}
+                  style={{ "--delay": "0.8s" } as React.CSSProperties}
                 >
                   <svg
                     className="w-5.5 h-5.5 text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300 pointer-events-auto"
@@ -117,11 +122,11 @@ const containerRef = useRef<HTMLDivElement>(null);
                 </Link>
 
                 {/* X / Twitter */}
-                <a
+                <Link
                   href="https://x.com"
                   target="_blank"
                   className="group block w-fit cursor-pointer fade-up"
-                  style={{ "--delay": "0.5s" } as React.CSSProperties}
+                  style={{ "--delay": "1.2s" } as React.CSSProperties}
                 >
                   <svg
                     className="w-5.5 h-5.5 text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300"
@@ -131,14 +136,14 @@ const containerRef = useRef<HTMLDivElement>(null);
                   >
                     <path d="M10.488 14.651L15.25 21h7l-7.858-10.478L20.93 3h-2.65l-5.117 5.886L8.75 3h-7l7.51 10.015L2.32 21h2.65zM16.25 19L5.75 5h2l10.5 14z" />
                   </svg>
-                </a>
+                </Link>
 
                 {/* LinkedIn */}
-                <a
+                <Link
                   href="https://linkedin.com"
                   target="_blank"
                   className="group block w-fit cursor-pointer fade-up"
-                  style={{ "--delay": "1s" } as React.CSSProperties}
+                  style={{ "--delay": "1.5s" } as React.CSSProperties}
                 >
                   <svg
                     className="w-5.5 h-5.5 text-[#fbffe2] group-hover:text-[#efbc31] transition-colors duration-300"
@@ -147,14 +152,14 @@ const containerRef = useRef<HTMLDivElement>(null);
                   >
                     <path d="M18.336 18.339h-2.665v-4.177c0-.996-.02-2.278-1.39-2.278c-1.389 0-1.601 1.084-1.601 2.205v4.25h-2.666V9.75h2.56v1.17h.035c.358-.674 1.228-1.387 2.528-1.387c2.7 0 3.2 1.778 3.2 4.092v4.714M7.004 8.575a1.546 1.546 0 0 1-1.548-1.549a1.548 1.548 0 1 1 1.547 1.549m1.336 9.764H5.667V9.75H8.34zM19.67 3H4.33C3.594 3 3 3.58 3 4.297v15.406C3 20.42 3.594 21 4.328 21h15.339C20.4 21 21 20.42 21 19.703V4.297C21 3.581 20.4 3 19.666 3z" />
                   </svg>
-                </a>
+                </Link>
 
                 {/* Instagram (Stroke Icon) */}
-                <a
+                <Link
                   href="https://instagram.com"
                   target="_blank"
                   className="group block w-fit cursor-pointer fade-up"
-                  style={{ "--delay": "1.2s" } as React.CSSProperties}
+                  style={{ "--delay": "1.8s" } as React.CSSProperties}
                 >
                   <svg
                     className="w-5.5 h-5.5 stroke-[#fbffe2] group-hover:stroke-[#efbc31] transition-colors duration-300"
@@ -166,7 +171,7 @@ const containerRef = useRef<HTMLDivElement>(null);
                     <path d="M16 11.37A4 4 0 1 1 12.63 8A4 4 0 0 1 16 11.37" />
                     <path d="M17.5 6.5h.01" />
                   </svg>
-                </a>
+                </Link>
               </div>
             </div>
             <div className="relative">

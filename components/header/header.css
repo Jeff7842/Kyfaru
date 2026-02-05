@@ -373,7 +373,7 @@ header, .header, .navbar, .nav-links, .nav-links ul li, .nav-links a, .dropdown-
 }
 
 .pulse-in-opacity {
-  transition-duration: 70000ms;
+  transition-duration: 700ms;
   animation: pulseInOpacity 10.3s ease-in-out infinite;
   will-change: opacity, transform;
 }

@@ -69,7 +69,7 @@ body {
 }
 
 .animate-scrollBounce {
-  animation: scrollBounce 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: scrollBounce 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes scrollEffect {
@@ -86,7 +86,7 @@ body {
 
   /* first drop */
   20% {
-    transform: translateY(10px);
+    transform: translateY(14px);
   }
 
   /* Effect up */
@@ -96,7 +96,7 @@ body {
 
   /* settle */
   40% {
-    transform: translateY(14px);
+    transform: translateY(18px);
     opacity: 1;
   }
 
@@ -113,7 +113,7 @@ body {
 }
 
 .animate-scrollEffect {
-  animation: scrollEffect 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation: scrollEffect 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   background-color:#f9c333;
 }
 

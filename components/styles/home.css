@@ -10,11 +10,8 @@
 }
 
 
-.social-content .group svg:hover,
-.social-content .group.active {
-  fill: var(--secondary-color);
-  cursor: pointer;
-}
+
+
 .social-content,
 .social-content *,
 a,
@@ -129,4 +126,121 @@ svg {
   opacity: 0;
   animation: fadeSide 1s ease-out forwards;
   animation-delay: var(--delay, 0s);
+}
+
+
+.svg-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0; /* behind everything */
+  pointer-events: none;
+  overflow: hidden;
+  background-color: rgb(12, 52, 19);
+   opacity: 0;
+  transform: scale(1.02);
+  transition:
+    opacity 7.4s ease-out,
+    transform 5.8s ease-out;
+    animation: bgFadeIn 2.6s ease-out forwards;
+  animation-delay: 0.3s;
+}
+
+.svg-bg--visible {
+  opacity: 1;
+  transform: scale(1);
+}
+.svg-pattern {
+  width: 110%;
+  height: 140%;
+  object-fit: cover;
+  position: relative;
+  right: 180px;
+  top: -165px;
+  mix-blend-mode: overlay;
+  opacity: 0.8;
+  scale: 1.4;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.15;
+    transform: scale(0.99);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.15;
+    transform: scale(0.99);
+  }
+}
+
+.svg-pattern polygon {
+  animation: pulse 6s ease-in-out infinite;
+  transform-origin: center;
+  will-change: opacity, transform;
+}
+
+.svg-pattern polygon:nth-child(6n + 1) { animation-delay: 0s; }
+.svg-pattern polygon:nth-child(6n + 2) { animation-delay: 0.5s; }
+.svg-pattern polygon:nth-child(6n + 3) { animation-delay: 1s; }
+.svg-pattern polygon:nth-child(6n + 4) { animation-delay: 1.5s; }
+.svg-pattern polygon:nth-child(6n + 5) { animation-delay: 2s; }
+.svg-pattern polygon:nth-child(6n)     { animation-delay: 2.5s; }
+
+
+@keyframes bgFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* globals.css — OUTSIDE @layer */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #f9c333 transparent;
+}
+
+html::-webkit-scrollbar {
+  width:1px;
+}
+
+html::-webkit-scrollbar-thumb {
+  background-color: #f9c333;
+  border-radius: 9999px;
+}
+html::-webkit-scrollbar-thumb:hover {
+    background-color: #f9c333; /* yellow-300 */
+    scrollbar-color: #ffbb00 transparent;
+  }
+
+@layer utilities {
+  .scrollbar-thin-yellow {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #f9c333 transparent; /* yellow-400 */
+  }
+
+  .scrollbar-thin-yellow::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  .scrollbar-thin-yellow::-webkit-scrollbar-track {
+    background: #f9c333;
+  }
+
+  .scrollbar-thin-yellow::-webkit-scrollbar-thumb {
+    background-color: #f9c333; /* yellow-400 */
+    border-radius: 9999px;
+  }
+
+  .scrollbar-thin-yellow::-webkit-scrollbar-thumb:hover {
+    background-color: #f9c333; /* yellow-300 */
+  }
 }
