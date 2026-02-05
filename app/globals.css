@@ -2,7 +2,7 @@
 
 
 :root {
-  --background: #ffffff;
+  --background: #fbffe2;
   --foreground: #171717;
 }
 
@@ -18,7 +18,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground: #fbffe2;
   }
 }
 
@@ -27,3 +27,93 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes scrollBounce {
+  /* idle */
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* appear */
+  10% {
+    opacity: 1;
+  }
+
+  /* first drop */
+  20% {
+    transform: translateY(10px);
+  }
+
+  /* bounce up */
+  30% {
+    transform: translateY(4px);
+  }
+
+  /* settle */
+  40% {
+    transform: translateY(14px);
+    opacity: 1;
+  }
+
+  /* fade out */
+  50% {
+    opacity: 1;
+  }
+
+  /* idle pause (IMPORTANT) */
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-scrollBounce {
+  animation: scrollBounce 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes scrollEffect {
+  /* idle */
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* appear */
+  10% {
+    opacity: 1;
+  }
+
+  /* first drop */
+  20% {
+    transform: translateY(10px);
+  }
+
+  /* Effect up */
+  30% {
+    transform: translateY(4px);
+  }
+
+  /* settle */
+  40% {
+    transform: translateY(14px);
+    opacity: 1;
+  }
+
+  /* fade out */
+  50% {
+    opacity: 1;
+  }
+
+  /* idle pause (IMPORTANT) */
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-scrollEffect {
+  animation: scrollEffect 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  background-color:#f9c333;
+}
+

@@ -10,19 +10,18 @@ export default function Header() {
             <nav className="navbar">
               <div className='logo'>
               <a href="#" className="logo-link">
-              <Image className="logo-symbol" src='/Logos/DarkLogosText.png' alt="Kyfaru Symbol"
-              width={40} height={40} />
-              <Image className="logo-text" src='/Logos/DarkLogosText.png' alt="Kyfaru Text"
-               width={130} height={30} />
+              <Image className="logo-symbol" src='/Logos/Dark Logos (2)@3x.png' alt="Kyfaru Symbol"
+              width={100} height={100} />
+              
             </a>
           </div>
           <div className='nav-links'>
             <ul>
-              <li  className='nav-item'><a href="#">Home</a></li>
-              <li  className='nav-item'><a href="#">About</a></li>
-              <li className='nav-item' ><a href="#">Solutions<i className="ti ti-chevron-down"></i></a></li>
-              <li className='nav-item'><a href="#">Portfolio</a></li>
-              <li className="nav-item dropdown"><a href="#">Ecosystem<i className="ti ti-chevron-down"></i></a>
+              <li  className='nav-item'><a href="#">HOME</a></li>
+              <li  className='nav-item'><a href="#">ABOUT US</a></li>
+              <li className='nav-item' ><a href="#">SOLUTIONS<i className="ti ti-chevron-down"></i></a></li>
+              <li className='nav-item'><a href="#">PROJECTS</a></li>
+              <li className="nav-item dropdown"><a href="#">ECOSYSTEM<i className="ti ti-chevron-down"></i></a>
               <div className="dropdown-menu">
     <div className="dropdown-grid">
 
@@ -55,10 +54,10 @@ export default function Header() {
     </div>
   </div></li>
 
-              <li className='nav-item'><a href="#">Contact</a></li>
+              <li className='nav-item'><a href="#">CONTACT</a></li>
               <li className="nav-item dropdown">
   <a href="#" className="nav-link">
-    Resources <i className="ti ti-chevron-down chevron"></i>
+    RESOURCES <i className="ti ti-chevron-down chevron"></i>
   </a>
 
   <div className=" dropdown-resource">

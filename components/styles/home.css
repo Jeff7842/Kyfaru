@@ -1,0 +1,132 @@
+:root {
+  --primary-color: #1f2a2c;
+  --primary-color-2: #0c3413;
+  --secondary-color: #efbc31;
+  --secondary-color-2: #555e57;
+  --text-color: #333333;
+  --background-color: #fbffe2;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+.social-content .group svg:hover,
+.social-content .group.active {
+  fill: var(--secondary-color);
+  cursor: pointer;
+}
+.social-content,
+.social-content *,
+a,
+svg {
+  pointer-events: auto !important;
+}
+
+@keyframes fadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  50% {
+    opacity: 0.55;
+  }
+  75% {
+    opacity: 0.65;
+
+  }
+  95% {
+    opacity: 0.95;
+
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  opacity: 0;
+  animation: fadeUp 1s ease-out forwards;
+}
+
+.delay-0 {
+  animation-delay: 0s;
+}
+.delay-1 {
+  animation-delay: 0.5s;
+}
+.delay-2 {
+  animation-delay: 0.8s;
+}
+
+.delay-3 {
+  animation-delay: 1.2s;
+}
+
+.fade-up {
+  opacity: 0;
+  animation: fadeUp 1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes fadeSide {
+  0% {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  50% {
+    opacity: 0.55;
+  }
+  75% {
+    opacity: 0.65;
+
+  }
+  95% {
+    opacity: 0.95;
+
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.fade-side {
+  opacity: 0;
+  animation: fadeSide 1s ease-out forwards;
+}
+
+.fade-side {
+  opacity: 0;
+  animation: fadeSide 1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.fade-up-scroll:not(.animate) {
+  animation: none;
+}
+.fade-side-scroll:not(.animate) {
+  animation: none;
+}
+
+.fade-up-scroll {
+  opacity: 0;
+  animation: fadeUp 1s ease-out forwards;
+}
+
+.fade-up-scroll{
+  opacity: 0;
+  animation: fadeUp 1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+.fade-side-scroll {
+  opacity: 0;
+  animation: fadeSide 1s ease-out forwards;
+}
+
+.fade-side-scroll{
+  opacity: 0;
+  animation: fadeSide 1s ease-out forwards;
+  animation-delay: var(--delay, 0s);
+}
