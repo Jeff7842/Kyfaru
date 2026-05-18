@@ -161,6 +161,21 @@ svg {
   scale: 1.4;
 }
 
+@media (max-width: 1200px) {
+  .svg-pattern {
+    width: auto;
+    height: 140%;
+    position: relative;
+    inset: auto;
+    right: 170px;
+    top: -165px;
+    opacity: 0.8;
+    scale: 1.4;
+  }
+}
+
+
+
 @keyframes pulse {
   0% {
     opacity: 0.15;

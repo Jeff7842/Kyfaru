@@ -201,7 +201,7 @@ header, .header, .navbar, .nav-links, .nav-links ul li, .nav-links a, .dropdown-
   left: 80%;
   transform: translateX(-50%);
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 18px 22px;
   min-width: 550px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
@@ -217,7 +217,7 @@ header, .header, .navbar, .nav-links, .nav-links ul li, .nav-links a, .dropdown-
   top: 70%;
   transform: translateX(-30%);
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 18px 10px;
   min-width: 220px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);

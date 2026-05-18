@@ -1,31 +1,37 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
-
+/* ================================================================
+   KYFARU CORE TOKENS
+   Dark = deep green sovereign tech.
+   Light = original Kyfaru ivory (#fbffe2) brand cream.
+   ================================================================ */
 :root {
-  --background: #fbffe2;
-  --foreground: #171717;
+  /* Light = clean corporate white canvas with deep-emerald foreground */
+  --background: #ffffff;
+  --foreground: #0a1f10;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-body: var(--font-cera-cy);
-  --font-title: var(--font-sinhala);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #fbffe2;
-  }
+html.dark {
+  --background: #060d07;
+  --foreground: #ede9dc;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-cera-cy), system-ui, sans-serif;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ── Text selection highlights ── */
+::selection {
+  background: rgba(12, 52, 19, 0.85); /* green in light mode */
+  color: #fbffe2;
+}
+.dark ::selection {
+  background: rgba(201, 168, 76, 0.85); /* gold in dark mode */
+  color: #060d07;
 }
 
 @keyframes scrollBounce {
@@ -116,4 +122,404 @@ body {
   animation: scrollEffect 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   background-color:#f9c333;
 }
+
+/* ================================================================
+   KYFARU BRAND DESIGN TOKENS
+   Dark-first design system informed by Stitch "Sovereign Technologist"
+   and "Kinetic Monolith" creative directives.
+   ================================================================ */
+
+/* ── Token shells (the values that actually swap per theme) ──
+   Tailwind's `@theme` references these via var(…) so when we override
+   them on `.dark` or `:root:not(.dark)`, every utility re-paints live. */
+:root {
+  /* Light mode — DESIGN.md "Radiant Monolith" stone palette */
+  --c-ky-base:      #ffffff;  /* surface-container-lowest — hero cards, main canvas */
+  --c-ky-dark:      #f3f4f3;  /* surface-container-low   — alt strips, sidebar      */
+  --c-ky-surface:   #f9f9f8;  /* surface                 — nested sections           */
+  --c-ky-raised:    #e1e3e2;  /* surface-container-highest — active/elevated zones   */
+
+  /* Deep Forest secondary — professional weight text */
+  --c-ky-green:     #191c1c;  /* on-surface — headings             */
+  --c-ky-green-mid: #2d4a2e;  /* mid-green for accents             */
+  --c-ky-green-hi:  #1b6e38;  /* lively emerald — links & accents  */
+
+  /* Amber Gold primary from DESIGN.md */
+  --c-ky-gold:      #775a00;  /* primary                */
+  --c-ky-gold-hi:   #efbc31;  /* primary-container      */
+  --c-ky-gold-dim:  #5c4500;  /* darker gold for subtle */
+
+  /* Text — neutral stone tones from DESIGN.md */
+  --c-ky-ivory:     #191c1c;  /* on-surface — primary text   */
+  --c-ky-muted:     #44474e;  /* neutral dark — secondary    */
+  --c-ky-faint:     #74777f;  /* neutral mid — tertiary/meta */
+
+  /* Borders — stone-grey, no green tint */
+  --c-ky-border:    #e1e3e2;
+  --c-ky-border-hi: #c4c7c5;
+}
+
+.dark {
+  /* Dark mode — Sovereign Technologist green-black */
+  --c-ky-base:      #060d07;
+  --c-ky-dark:      #0a1409;
+  --c-ky-surface:   #0f1e0d;
+  --c-ky-raised:    #162716;
+
+  --c-ky-green:     #1a5c2e;
+  --c-ky-green-mid: #226e39;
+  --c-ky-green-hi:  #4aaf6e;
+
+  --c-ky-gold:      #c9a84c;
+  --c-ky-gold-hi:   #efbc31;
+  --c-ky-gold-dim:  #7a6220;
+
+  --c-ky-ivory:     #ede9dc;
+  --c-ky-muted:     #8a9e8c;
+  --c-ky-faint:     #3d524e;
+
+  --c-ky-border:    #1a2e1c;
+  --c-ky-border-hi: #254025;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* ── Reactive theme tokens (resolve through CSS vars at runtime) ── */
+  --color-ky-base:      var(--c-ky-base);
+  --color-ky-dark:      var(--c-ky-dark);
+  --color-ky-surface:   var(--c-ky-surface);
+  --color-ky-raised:    var(--c-ky-raised);
+
+  --color-ky-green:     var(--c-ky-green);
+  --color-ky-green-mid: var(--c-ky-green-mid);
+  --color-ky-green-hi:  var(--c-ky-green-hi);
+
+  --color-ky-gold:      var(--c-ky-gold);
+  --color-ky-gold-hi:   var(--c-ky-gold-hi);
+  --color-ky-gold-dim:  var(--c-ky-gold-dim);
+
+  --color-ky-ivory:     var(--c-ky-ivory);
+  --color-ky-muted:     var(--c-ky-muted);
+  --color-ky-faint:     var(--c-ky-faint);
+
+  --color-ky-border:    var(--c-ky-border);
+  --color-ky-border-hi: var(--c-ky-border-hi);
+
+  /* ── Typography (CeraCY everywhere, Sinhala for display) ── */
+  --font-cera:           var(--font-cera-cy);
+  --font-sinhala:        var(--font-sinhala);
+  --font-display:        var(--font-cera-cy);
+  --font-body:           var(--font-cera-cy);
+  --font-title:          var(--font-sinhala);
+  --font-inter:          var(--font-cera-cy);
+  --font-dm:             var(--font-cera-cy);
+
+  /* ── Corporate-friendly radius scale (5–15px range per brief) ── */
+  --radius-ky-xs:  4px;
+  --radius-ky-sm:  6px;
+  --radius-ky-md:  10px;
+  --radius-ky-lg:  14px;
+  --radius-ky-xl:  18px;
+
+  /* ── Override Tailwind's default radius scale so every `rounded-*`
+        utility lands in the 5–15px corporate range. `rounded-full`
+        (uses --radius-full) is intentionally left at 9999px. ── */
+  --radius-xs:  5px;   /* rounded-xs   */
+  --radius-sm:  6px;   /* rounded-sm   */
+  --radius-md:  8px;   /* rounded-md   */
+  --radius-lg:  10px;  /* rounded-lg   */
+  --radius-xl:  12px;  /* rounded-xl   */
+  --radius-2xl: 14px;  /* rounded-2xl  */
+  --radius-3xl: 15px;  /* rounded-3xl  */
+  --radius-4xl: 15px;  /* clamp the maximum */
+}
+
+/* Base `rounded` (no suffix) — Tailwind v4 inlines 0.25rem (4px) which is
+   below our brand minimum. Force it to the brand floor. */
+.rounded {
+  border-radius: 5px;
+}
+/* Same for `rounded-none` users who actually want NO radius — keep at 0. */
+.rounded-none { border-radius: 0 !important; }
+
+/* ── Reusable Utility Classes ── */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border-bottom: 1px solid rgba(10, 31, 16, 0.10);
+  border-right: 1px solid rgba(226, 226, 226, 0.28);
+  border-left: 1px solid rgba(226, 226, 226, 0.28);
+}
+.dark .glass-nav {
+  background: rgba(6, 13, 7, 0.95);
+  border-bottom: 1px solid rgba(74, 175, 110, 0.12);
+  border-right: 1px solid rgba(49, 49, 49, 0.28);
+  border-left: 1px solid rgba(49, 49, 49, 0.28);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.dark .glass-card {
+  background: rgba(15, 30, 13, 0.55);
+}
+
+/* Sci-fi HUD panel — used by OrbitalServicesSection */
+.hud-clip {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+}
+.hud-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 2px,
+    rgba(255, 255, 255, 0.025) 2px,
+    rgba(255, 255, 255, 0.025) 3px
+  );
+}
+
+.section-pad {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+/* ── HERO TITLE TREATMENTS ──────────────────────────────────────
+   Replaces the previous cheap two-tone gradient. Provides three
+   composable building blocks used across every page hero:
+
+   .ky-hero-title       — base typography: deep emerald, balanced wrap.
+                          In dark mode it becomes ivory automatically.
+   .ky-hero-accent      — wrap a span of text in this and you get a
+                          single underline-style highlight (gold in dark
+                          mode, emerald in light) that animates in.
+   .ky-hero-mark        — wraps a word in a soft-shadowed highlight
+                          chip (think “marker highlight on a page”) used
+                          for the single most important word.
+   ----------------------------------------------------------------- */
+.ky-hero-title {
+  color: var(--c-ky-ivory);
+  font-family: var(--font-cera-cy), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.ky-hero-accent {
+  position: relative;
+  display: inline-block;
+  color: var(--c-ky-green-hi);
+  font-style: italic;
+  white-space: nowrap;
+}
+.ky-hero-accent::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -0.05em;
+  height: 0.18em;
+  background: var(--c-ky-gold-hi);
+  opacity: 0.55;
+  z-index: -1;
+  border-radius: 2px;
+  transform-origin: left center;
+  animation: heroUnderlineGrow 1.1s 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) both;
+}
+@keyframes heroUnderlineGrow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.ky-hero-mark {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.25em;
+  color: var(--c-ky-ivory);
+  background: linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 55%,
+    var(--c-ky-gold-hi) 55%,
+    var(--c-ky-gold-hi) 95%,
+    transparent 95%
+  );
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-radius: 3px;
+}
+.dark .ky-hero-mark {
+  background: linear-gradient(
+    180deg,
+    transparent 0,
+    transparent 55%,
+    rgba(214, 164, 41, 0.35) 55%,
+    rgba(214, 164, 41, 0.35) 95%,
+    transparent 95%
+  );
+  color: var(--c-ky-ivory);
+}
+
+/* Decorative dotted/grid backdrop you can drop behind any hero title */
+.ky-hero-bg-dots {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    color-mix(in srgb, var(--c-ky-ivory) 18%, transparent) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+
+/* Single colour utility for body emphasis text (kept for backwards
+   compat with anywhere `gradient-text` was still referenced) */
+.gradient-text {
+  color: var(--c-ky-green-hi);
+}
+.dark .gradient-text {
+  color: var(--c-ky-gold-hi);
+}
+
+.gold-gradient-bg {
+  background: linear-gradient(135deg, #ffdb89 0%, #efbc31 50%, #c9a84c 100%);
+}
+
+.green-gradient-bg {
+  background: linear-gradient(135deg, var(--color-ky-green-mid) 0%, var(--color-ky-green) 100%);
+}
+
+.ghost-border {
+  border: 1px solid var(--c-ky-border);
+}
+
+/* ── Reusable corporate corner-radius helpers ── */
+.ky-rounded     { border-radius: var(--radius-ky-md); }   /* 10px — default boxes */
+.ky-rounded-sm  { border-radius: var(--radius-ky-sm); }   /* 6px  — inputs / chips */
+.ky-rounded-lg  { border-radius: var(--radius-ky-lg); }   /* 14px — hero / featured */
+.ky-rounded-xl  { border-radius: var(--radius-ky-xl); }   /* 18px — floating panels */
+
+/* Floating navbar pill */
+.ky-nav-float {
+  border-radius: 15px;
+  border: 1px solid var(--c-ky-border);
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.18);
+}
+.dark .ky-nav-float {
+  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.55);
+}
+
+.card-lift {
+  transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+}
+.card-lift:hover {
+  transform: translateY(-6px);
+  border-color: var(--color-ky-green-mid);
+  background: var(--color-ky-raised);
+  box-shadow: 0 0 40px rgba(243, 191, 52, 0.06);
+}
+
+/* Triangular cut corner accent (used on featured cards) */
+.corner-cut-tr {
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+}
+
+/* Tessellation overlay helper */
+.tessellation-bg {
+  background-image:
+    linear-gradient(60deg, transparent 49%, rgba(74, 175, 110, 0.04) 49%, rgba(74, 175, 110, 0.04) 51%, transparent 51%),
+    linear-gradient(-60deg, transparent 49%, rgba(201, 168, 76, 0.04) 49%, rgba(201, 168, 76, 0.04) 51%, transparent 51%);
+  background-size: 60px 60px;
+}
+
+/* Ambient gold glow for floating prestige elements */
+.ambient-glow {
+  box-shadow: 0 0 60px rgba(243, 191, 52, 0.08), 0 0 120px rgba(74, 175, 110, 0.04);
+}
+
+/* ── Keyframe Animations ── */
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes marquee-scroll-reverse {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes dot-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 175, 110, 0.55); }
+  70%  { box-shadow: 0 0 0 12px rgba(74, 175, 110, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 175, 110, 0); }
+}
+@keyframes dot-pulse-gold {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 188, 49, 0.55); }
+  70%  { box-shadow: 0 0 0 12px rgba(239, 188, 49, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 188, 49, 0); }
+}
+@keyframes terminal-blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
+}
+@keyframes reticle-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes pulse-travel {
+  0%   { offset-distance: 0%; opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+.animate-marquee         { animation: marquee-scroll 32s linear infinite; }
+.animate-marquee-slow    { animation: marquee-scroll 75s linear infinite; }
+.animate-marquee-rev     { animation: marquee-scroll-reverse 75s linear infinite; }
+.marquee-pause-on-hover:hover { animation-play-state: paused; }
+.animate-fade-up     { animation: fade-up 0.7s ease-out forwards; }
+.animate-glow-pulse  { animation: glow-pulse 3s ease-in-out infinite; }
+.animate-shimmer     {
+  background: linear-gradient(90deg, transparent, rgba(243, 191, 52, 0.15), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+.animate-dot-pulse      { animation: dot-pulse 2s ease-out infinite; }
+.animate-dot-pulse-gold { animation: dot-pulse-gold 2s ease-out infinite; }
+.animate-terminal-blink { animation: terminal-blink 1.2s steps(2, end) infinite; }
+.animate-reticle-spin   { animation: reticle-spin 12s linear infinite; }
+
+/* ── Theme-aware text highlight helper ── */
+.text-highlight {
+  color: var(--color-ky-green);
+}
+.dark .text-highlight {
+  color: var(--color-ky-gold);
+}
+
+/* ── Lenis smooth scroll required styling ── */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
 
