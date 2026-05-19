@@ -20,38 +20,47 @@ import type { Project } from '@/types'
 export const projects: Project[] = [
   {
     id: 'proj-001',
-    title: 'Kyfaru Showcase',
+    title: 'Tallytrack Africa Nominations',
     description:
-      'The Kyfaru flagship website itself — a dark, editorial portfolio built with Next.js, Tailwind v4, and a custom design system.',
-    liveUrl: 'https://kyfaru.vercel.app',
-    tags: ['Web App', 'Branding'],
+      'Built a high-traffic awards and nominations platform using HTML, CSS, JavaScript, and Node.js with M-Pesa and international payments, designed to support 100K+ users through secure voting, scalable performance, and seamless user participation.',
+    liveUrl: 'https://tallytrack-africa-nominations-1.vercel.app/',
+    tags: ['Web App', 'Polling System', 'Professional', 'International Payments'],
     featured: true,
   },
   {
     id: 'proj-002',
-    title: 'School Polling System',
+    title: "Siz Let's Pray",
     description:
-      'A real-time digital voting platform for school elections — secure, transparent, and tamper-resistant.',
-    liveUrl: 'https://example.com',
-    tags: ['Web App', 'Polling System'],
+      'A Gospel-centered digital sisterhood for women. Built with Next.js, Tailwind & PostgreSQL — uniquely integrating Google Sheets via Google Scripts and Supabase file storage for resource management.',
+    liveUrl: 'https://www.sizletspray.com',
+    tags: ['Starter', 'Web App', 'Gospel', 'Women'],
     featured: true,
   },
   {
     id: 'proj-003',
-    title: 'Fintech Mobile App',
+    title: 'Rise Again Holdings',
     description:
-      'A cross-platform money-transfer mobile app with M-Pesa integration and instant peer-to-peer settlements.',
-    liveUrl: 'https://example.com',
-    tags: ['Mobile App', 'Fintech'],
+      'Premium real estate platform with client and admin portals. Built with Next.js, Tailwind & Go backend, PostgreSQL — featuring live property listings and a full management dashboard.',
+    liveUrl: 'https://www.riseagainholdings.com',
+    tags: ['Professional', 'Web App', 'Real Estate'],
     featured: true,
   },
   {
     id: 'proj-004',
-    title: 'USSD Payments Gateway',
+    title: 'Zoya Botanicals',
     description:
-      'A nationwide USSD payment service that lets feature-phone users transact without internet access.',
-    liveUrl: 'https://example.com',
-    tags: ['USSD', 'Payments'],
+      'A full-stack botanical e-commerce shop for Africa. Built with Next.js, Tailwind & PostgreSQL — featuring Google Auth, a cart system, rewards program, and curated product catalog.',
+    liveUrl: 'https://zoyabotanicals.com',
+    tags: ['Professional','E-commerce', 'Web App', 'Botanicals'],
+    featured: false,
+  },
+  {
+    id: 'proj-005',
+    title: 'Stackable Academy',
+    description:
+      'A school management operating system for institutions, teachers, and guardians. Built with Next.js, Tailwind & Go backend — featuring role-based dashboards, academic tracking, and modular institutional workflows.',
+    liveUrl: 'https://staqable.app',
+    tags: ['Enterprise','Web App', 'Education', 'Management'],
     featured: false,
   },
 ]
