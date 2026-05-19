@@ -23,7 +23,7 @@ export const projects: Project[] = [
     title: 'Tallytrack Africa Nominations',
     description:
       'Built a high-traffic awards and nominations platform using HTML, CSS, JavaScript, and Node.js with M-Pesa and international payments, designed to support 100K+ users through secure voting, scalable performance, and seamless user participation.',
-    liveUrl: 'https://tallytrack-africa-nominations-1.vercel.app/',
+    liveUrl: 'https://tallytrack-africa-nominations-1.verce.app/',
     tags: ['Web App', 'Polling System', 'Professional', 'International Payments'],
     featured: true,
     comingSoon: false,
