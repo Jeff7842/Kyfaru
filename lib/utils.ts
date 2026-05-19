@@ -67,7 +67,7 @@ export function getProjectScreenshotUrl(
 ): string {
   try {
     if (!liveUrl) return ''
-    return `https://image.thum.io/get/width/${width}/crop/${crop}/${encodeURIComponent(liveUrl)}`+ url
+    return `//image.thum.io/get/width/${width}/crop/${crop}/${liveUrl}`
   } catch (error) {
     console.error('[getProjectScreenshotUrl] Error building URL:', error)
     return ''
