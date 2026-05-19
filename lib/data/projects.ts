@@ -26,6 +26,7 @@ export const projects: Project[] = [
     liveUrl: 'https://tallytrack-africa-nominations-1.vercel.app/',
     tags: ['Web App', 'Polling System', 'Professional', 'International Payments'],
     featured: true,
+    comingSoon: false,
   },
   {
     id: 'proj-002',
@@ -35,6 +36,7 @@ export const projects: Project[] = [
     liveUrl: 'https://www.sizletspray.com',
     tags: ['Starter', 'Web App', 'Gospel', 'Women'],
     featured: true,
+    comingSoon: false,
   },
   {
     id: 'proj-003',
@@ -44,6 +46,7 @@ export const projects: Project[] = [
     liveUrl: 'https://www.riseagainholdings.com',
     tags: ['Professional', 'Web App', 'Real Estate'],
     featured: true,
+    comingSoon: false,
   },
   {
     id: 'proj-004',
@@ -53,6 +56,7 @@ export const projects: Project[] = [
     liveUrl: 'https://zoyabotanicals.com',
     tags: ['Professional','E-commerce', 'Web App', 'Botanicals'],
     featured: false,
+    comingSoon: false,
   },
   {
     id: 'proj-005',
@@ -62,6 +66,7 @@ export const projects: Project[] = [
     liveUrl: 'https://staqable.app',
     tags: ['Enterprise','Web App', 'Education', 'Management'],
     featured: false,
+    comingSoon: true,
   },
 ]
 

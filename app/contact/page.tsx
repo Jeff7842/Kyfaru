@@ -5,13 +5,21 @@
 // Fields: first name, last name, email, topic dropdown, message.
 // ============================================================
 
-import { useState, FormEvent } from 'react'
+import { useState, useRef, useEffect, FormEvent } from 'react'
 import Header from '@/components/header/header'
 import Footer from '@/components/layout/Footer'
 import { Icon } from '@iconify/react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import PageHero from '@/components/shared/PageHero'
+
+const TOPIC_OPTIONS = [
+  { value: 'General Inquiry',  icon: 'heroicons:chat-bubble-oval-left-ellipsis' },
+  { value: 'Partnership',      icon: 'heroicons:handshake' },
+  { value: 'Support',          icon: 'heroicons:lifebuoy' },
+  { value: 'Feedback',         icon: 'heroicons:megaphone' },
+  { value: 'Other',            icon: 'heroicons:ellipsis-horizontal-circle' },
+]
 
 type ContactForm = {
   firstName: string
@@ -20,14 +28,6 @@ type ContactForm = {
   topic: string
   message: string
 }
-
-const TOPIC_OPTIONS = [
-  'General Inquiry',
-  'Partnership',
-  'Support',
-  'Feedback',
-  'Other',
-]
 
 const CONTACT_INFO = [
   { icon: 'heroicons:envelope', label: 'Email', value: 'hello@kyfaru.com', href: 'mailto:hello@kyfaru.com' },
@@ -68,7 +68,7 @@ export default function ContactPage() {
           accent: 'touch',
           tail: '.',
         }}
-        subtitle="Questions, feedback, or just want to say hello? We'd love to hear from you."
+        subtitle="Questions, feedback, or just want to say hello? We&rsquo;d love to hear from you."
       />
 
       <section className="bg-ky-base py-20 md:py-28">
@@ -139,17 +139,10 @@ export default function ContactPage() {
                 </FormField>
 
                 <FormField label="Topic" required>
-                  <select
-                    required
+                  <TopicDropdown
                     value={form.topic}
-                    onChange={(e) => handleChange('topic', e.target.value)}
-                    className={cn(inputClasses, 'appearance-none cursor-pointer')}
-                  >
-                    <option value="" disabled>Select a topic…</option>
-                    {TOPIC_OPTIONS.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+                    onChange={(v) => handleChange('topic', v)}
+                  />
                 </FormField>
 
                 <FormField label="Your message" required>
@@ -240,5 +233,79 @@ function FormField({
       </span>
       {children}
     </label>
+  )
+}
+
+function TopicDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  const selected = TOPIC_OPTIONS.find((o) => o.value === value)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Trigger */}
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((p) => !p)}
+        className={cn(
+          inputClasses,
+          'flex items-center justify-between gap-2 text-left',
+          !value && 'text-ky-faint'
+        )}
+      >
+        <span className="flex items-center gap-2">
+          {selected && (
+            <Icon icon={selected.icon} className="w-4 h-4 text-ky-gold shrink-0" />
+          )}
+          {selected ? selected.value : 'Select a topic…'}
+        </span>
+        <Icon
+          icon="heroicons:chevron-down"
+          className={cn('w-4 h-4 text-ky-faint transition-transform shrink-0', open && 'rotate-180')}
+        />
+      </button>
+
+      {/* Dropdown panel */}
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute z-50 left-0 right-0 top-full mt-1 bg-ky-surface ghost-border ky-rounded-sm shadow-2xl shadow-black/40 overflow-hidden"
+        >
+          {TOPIC_OPTIONS.map((option) => (
+            <li
+              key={option.value}
+              role="option"
+              aria-selected={value === option.value}
+              onClick={() => { onChange(option.value); setOpen(false) }}
+              className={cn(
+                'flex items-center gap-3 px-4 py-3 cursor-pointer text-sm font-inter transition-colors',
+                value === option.value
+                  ? 'bg-ky-raised text-ky-gold'
+                  : 'text-ky-ivory hover:bg-ky-raised hover:text-ky-gold'
+              )}
+            >
+              <Icon icon={option.icon} className="w-4 h-4 shrink-0" />
+              <span>{option.value}</span>
+              {value === option.value && (
+                <Icon icon="heroicons:check" className="w-3.5 h-3.5 ml-auto text-ky-gold" />
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* Hidden native input so the form required check still works */}
+      <input type="text" required value={value} onChange={() => {}} className="sr-only" aria-hidden />
+    </div>
   )
 }

@@ -12,6 +12,7 @@ export interface Project {
   liveUrl: string       // Full URL of the live deployed project
   tags: string[]        // Category tags — e.g. ['Web App', 'E-Commerce']
   featured: boolean     // Show on homepage? true = yes
+  comingSoon?: boolean  // If true: badge shown, card dimmed, link disabled
 }
 
 /** One service offered by Kyfaru */

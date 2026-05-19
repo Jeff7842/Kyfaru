@@ -14,12 +14,13 @@ import Header from '@/components/header/header'
 import Footer from '@/components/layout/Footer'
 import PageHero from '@/components/shared/PageHero'
 import { cn } from '@/lib/utils'
+import { useCurrency, formatPrice } from '@/lib/hooks/useCurrency'
 
 const TIERS = [
   {
     name: 'Starter',
     tagline: 'For small businesses launching their first digital product or for individuals looking to show off their skills or portfolio',
-    price: 'From KES 80K',
+    baseKes: 80_000,
     cadence: 'one-time',
     highlight: false,
     features: [
@@ -37,7 +38,7 @@ const TIERS = [
   {
     name: 'Professional',
     tagline: 'Full-stack systems for growing businesses ready to scale',
-    price: 'From KES 200K',
+    baseKes: 200_000,
     cadence: 'one-time',
     highlight: true,
     features: [
@@ -57,7 +58,7 @@ const TIERS = [
   {
     name: 'Enterprise',
     tagline: 'Complex systems for institutions & high-growth companies',
-    price: 'Custom quote',
+    baseKes: null,
     cadence: '',
     highlight: false,
     features: [
@@ -99,6 +100,7 @@ const FAQS = [
 
 export default function PricingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0)
+  const currency = useCurrency()
 
   function toggleFaq(index: number) {
     try {
@@ -148,7 +150,7 @@ export default function PricingPage() {
 
               <div>
                 <div className="text-4xl md:text-5xl font-semibold text-ky-gold font-display leading-none mb-1">
-                  {tier.price}
+                  {tier.baseKes ? `From ${formatPrice(tier.baseKes, currency)}` : 'Custom quote'}
                 </div>
                 {tier.cadence && (
                   <div className="text-xs text-ky-faint tracking-wider font-inter">{tier.cadence}</div>
@@ -182,7 +184,7 @@ export default function PricingPage() {
 
         {/* Note */}
         <p className="text-center text-xs text-ky-faint mt-12 font-inter">
-          All prices in Kenyan Shillings. VAT excluded. Custom requirements always quoted separately.
+          All prices in {currency.name}. VAT excluded. Custom requirements always quoted separately.
         </p>
       </section>
 

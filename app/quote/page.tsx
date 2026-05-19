@@ -6,7 +6,7 @@
 // Process, and Testimonials sections.
 // ============================================================
 
-import { useState, useEffect, useRef, FormEvent } from 'react'
+import { useState, useEffect, useRef, useCallback, FormEvent } from 'react'
 import { motion, useInView, useAnimation, AnimatePresence } from 'motion/react'
 import Header from '@/components/header/header'
 import Footer from '@/components/layout/Footer'
@@ -17,6 +17,9 @@ import KySelect, { type KySelectOption } from '@/components/ui/KySelect'
 import KyPhoneInput from '@/components/ui/KyPhoneInput'
 import KyLocationInput from '@/components/ui/KyLocationInput'
 import PageHero from '@/components/shared/PageHero'
+import { useCurrency, formatPrice } from '@/lib/hooks/useCurrency'
+
+type AttachedFile = { id: string; file: File; error?: string }
 
 type FormState = {
   name: string
@@ -40,13 +43,20 @@ const SERVICE_OPTIONS: KySelectOption[] = [
   { value: 'other',   label: 'Something else',         icon: 'heroicons:sparkles',            description: 'Tell us about it' },
 ]
 
-const BUDGET_OPTIONS: KySelectOption[] = [
-  { value: 'starter',     label: 'Under KES 200,000',        icon: 'heroicons:banknotes' },
-  { value: 'professional', label: 'KES 200,000 — 500,000',   icon: 'heroicons:banknotes' },
-  { value: 'growth',      label: 'KES 500,000 — 1,500,000',  icon: 'heroicons:chart-bar-square' },
-  { value: 'enterprise',  label: 'KES 1,500,000+',           icon: 'heroicons:building-office-2' },
-  { value: 'unknown',     label: 'Not sure yet',             icon: 'heroicons:question-mark-circle' },
+const MAX_FILES = 10
+const MAX_FILE_BYTES = 2 * 1024 * 1024 // 2 MB
+const ACCEPTED_MIME = [
+  'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
 ]
+const ACCEPTED_EXTS = '.jpg,.jpeg,.png,.webp,.gif,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt'
 
 const CONTACT_INFO = [
   { icon: 'heroicons:envelope',          label: 'Email',    value: 'hello@kyfaru.com',     href: 'mailto:hello@kyfaru.com' },
@@ -55,7 +65,22 @@ const CONTACT_INFO = [
   { icon: 'heroicons:clock',             label: 'Hours',    value: 'Mon — Fri, 9am — 6pm EAT', href: null },
 ]
 
+function buildBudgetOptions(currency: ReturnType<typeof useCurrency>): KySelectOption[] {
+  const f = (kes: number) => formatPrice(kes, currency)
+  return [
+    { value: 'starter',      label: `Under ${f(200_000)}`,             icon: 'heroicons:banknotes' },
+    { value: 'professional', label: `${f(200_000)} — ${f(500_000)}`,   icon: 'heroicons:banknotes' },
+    { value: 'growth',       label: `${f(500_000)} — ${f(1_500_000)}`, icon: 'heroicons:chart-bar-square' },
+    { value: 'enterprise',   label: `${f(1_500_000)}+`,                icon: 'heroicons:building-office-2' },
+    { value: 'unknown',      label: 'Not sure yet',                    icon: 'heroicons:question-mark-circle' },
+  ]
+}
+
 export default function QuotePage() {
+  const currency = useCurrency()
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
+  const [dragOver, setDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState<FormState>({
     name: '',
     email: '',
@@ -69,13 +94,35 @@ export default function QuotePage() {
   })
   const [submitted, setSubmitted] = useState(false)
 
+  const addFiles = useCallback((incoming: FileList | File[]) => {
+    const list = Array.from(incoming)
+    setAttachedFiles((prev) => {
+      const combined = [...prev]
+      for (const file of list) {
+        if (combined.length >= MAX_FILES) break
+        const error = !ACCEPTED_MIME.includes(file.type)
+          ? 'Unsupported file type'
+          : file.size > MAX_FILE_BYTES
+          ? 'File exceeds 2 MB'
+          : undefined
+        combined.push({ id: `${file.name}-${file.size}-${Date.now()}`, file, error })
+      }
+      return combined
+    })
+  }, [])
+
+  function removeFile(id: string) {
+    setAttachedFiles((prev) => prev.filter((f) => f.id !== id))
+  }
+
   function handleChange(field: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    console.log('[Quote form submission]', form)
+    const validFiles = attachedFiles.filter((f) => !f.error)
+    console.log('[Quote form submission]', form, { files: validFiles.map((f) => f.file.name) })
     setSubmitted(true)
   }
 
@@ -222,12 +269,95 @@ export default function QuotePage() {
                     <KySelect
                       value={form.budget}
                       onValueChange={(v) => handleChange('budget', v)}
-                      options={BUDGET_OPTIONS}
+                      options={buildBudgetOptions(currency)}
                       placeholder="Select a range…"
                       ariaLabel="Estimated budget"
                       required
                     />
                   </FormField>
+                </div>
+
+                {/* ── File upload ── */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs tracking-[0.15em] uppercase text-ky-muted font-display">
+                    Attachments <span className="text-ky-faint normal-case tracking-normal">(optional · up to {MAX_FILES} files · 2 MB each)</span>
+                  </span>
+
+                  {/* Drop zone */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Upload files"
+                    onClick={() => fileInputRef.current?.click()}
+                    onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+                    onDragLeave={() => setDragOver(false)}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      setDragOver(false)
+                      if (e.dataTransfer.files) addFiles(e.dataTransfer.files)
+                    }}
+                    className={cn(
+                      'w-full ghost-border ky-rounded-sm px-5 py-6 flex flex-col items-center gap-3 cursor-pointer transition-colors',
+                      dragOver ? 'border-ky-gold bg-ky-raised' : 'bg-ky-base hover:bg-ky-raised',
+                      attachedFiles.length >= MAX_FILES && 'pointer-events-none opacity-50'
+                    )}
+                  >
+                    <Icon icon="heroicons:arrow-up-tray" className="w-6 h-6 text-ky-gold" />
+                    <div className="text-center">
+                      <p className="text-sm text-ky-ivory font-inter">
+                        <span className="text-ky-gold">Click to browse</span> or drag & drop
+                      </p>
+                      <p className="text-xs text-ky-faint mt-1 font-inter">
+                        JPG · PNG · PDF · DOC · DOCX · XLS · XLSX · PPT · TXT
+                      </p>
+                    </div>
+                  </div>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    accept={ACCEPTED_EXTS}
+                    className="hidden"
+                    onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = '' }}
+                  />
+
+                  {/* Attached file chips */}
+                  {attachedFiles.length > 0 && (
+                    <ul className="flex flex-col gap-2 mt-1">
+                      {attachedFiles.map((f) => (
+                        <li
+                          key={f.id}
+                          className={cn(
+                            'flex items-center gap-3 px-3 py-2 ky-rounded-sm text-xs font-inter',
+                            f.error ? 'bg-red-500/10 border border-red-500/30 text-red-400' : 'bg-ky-raised ghost-border text-ky-ivory'
+                          )}
+                        >
+                          <Icon
+                            icon={f.error ? 'heroicons:exclamation-circle' : 'heroicons:paper-clip'}
+                            className={cn('w-3.5 h-3.5 shrink-0', f.error ? 'text-red-400' : 'text-ky-gold')}
+                          />
+                          <span className="flex-1 truncate">{f.file.name}</span>
+                          {f.error ? (
+                            <span className="text-red-400 shrink-0">{f.error}</span>
+                          ) : (
+                            <span className="text-ky-faint shrink-0">
+                              {(f.file.size / 1024).toFixed(0)} KB
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => removeFile(f.id)}
+                            aria-label={`Remove ${f.file.name}`}
+                            className="shrink-0 text-ky-faint hover:text-ky-gold transition-colors"
+                          >
+                            <Icon icon="heroicons:x-mark" className="w-3.5 h-3.5" />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 <FormField label="Tell us about your project" required>
