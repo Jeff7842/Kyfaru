@@ -58,6 +58,8 @@ export function formatDate(dateString: string): string {
  * Builds a thum.io screenshot URL for a given live website URL.
  * thum.io is a free screenshot service — no API key required.
  */
+const url = 'https://kyfaru.com';
+
 export function getProjectScreenshotUrl(
   liveUrl: string,
   width: number = 1200,
@@ -65,7 +67,7 @@ export function getProjectScreenshotUrl(
 ): string {
   try {
     if (!liveUrl) return ''
-    return `https://image.thum.io/get/width/${width}/crop/${crop}/${encodeURIComponent(liveUrl)}`
+    return `https://image.thum.io/get/width/${width}/crop/${crop}/${encodeURIComponent(liveUrl)}`+ url
   } catch (error) {
     console.error('[getProjectScreenshotUrl] Error building URL:', error)
     return ''
