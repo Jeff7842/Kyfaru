@@ -62,7 +62,7 @@ const url = 'https://kyfaru.com';
 
 export function getProjectScreenshotUrl(
   liveUrl: string,
-  width: number = 1200,
+  width: number = 900,
   crop: number = 675
 ): string {
   try {

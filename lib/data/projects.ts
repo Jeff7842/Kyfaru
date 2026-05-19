@@ -53,7 +53,7 @@ export const projects: Project[] = [
     title: 'Zoya Botanicals',
     description:
       'A full-stack botanical e-commerce shop for Africa. Built with Next.js, Tailwind & PostgreSQL — featuring Google Auth, a cart system, rewards program, and curated product catalog.',
-    liveUrl: 'https://zoyabotanicals.com',
+    liveUrl: 'https://myzoya.shop',
     tags: ['Professional','E-commerce', 'Web App', 'Botanicals'],
     featured: false,
     comingSoon: false,
