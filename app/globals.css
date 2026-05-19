@@ -496,6 +496,14 @@ body {
 .animate-marquee         { animation: marquee-scroll 32s linear infinite; }
 .animate-marquee-slow    { animation: marquee-scroll 75s linear infinite; }
 .animate-marquee-rev     { animation: marquee-scroll-reverse 75s linear infinite; }
+
+@keyframes marquee-vertical {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-50%); }
+}
+.animate-marquee-vertical {
+  animation: marquee-vertical var(--duration, 30s) linear infinite;
+}
 .marquee-pause-on-hover:hover { animation-play-state: paused; }
 .animate-fade-up     { animation: fade-up 0.7s ease-out forwards; }
 .animate-glow-pulse  { animation: glow-pulse 3s ease-in-out infinite; }
