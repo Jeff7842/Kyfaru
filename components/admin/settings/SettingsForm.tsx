@@ -111,7 +111,7 @@ export default function SettingsForm({ user }: { user: User | null }) {
             </label>
             <select
               value={channel}
-              onChange={(e) => setChannel(e.target.value)}
+              onChange={(e) => setChannel(e.target.value as 'email' | 'whatsapp' | 'sms')}
               className="kf-input w-full"
             >
               <option value="email">Email</option>
