@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -30,7 +31,9 @@ type SessUser = {
   image?: string | null
 } | null
 
-const NAV = [
+type NavItem = { href: string; label: string; icon: React.ElementType; exact?: boolean }
+
+const NAV: NavItem[] = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/projects', label: 'Projects', icon: FolderKanban },
   { href: '/admin/clients', label: 'Clients', icon: Users },
@@ -42,7 +45,7 @@ const NAV = [
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 
-const SUPER_ADMIN_NAV = [
+const SUPER_ADMIN_NAV: NavItem[] = [
   { href: '/admin/audit', label: 'Audit Log', icon: ShieldCheck },
 ]
 
