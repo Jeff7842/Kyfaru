@@ -4,18 +4,23 @@ import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { formatMoney, formatDate } from '@/lib/admin/utils'
 import StatusBadge from '@/components/admin/shared/StatusBadge'
+import Pagination from '@/components/admin/shared/Pagination'
 import type { Invoice, Client } from '@/lib/admin/db/schema'
 
 type Row = Invoice & { client: Client | null }
+const PAGE_SIZE = 20
 
 export default function InvoicesTable({ initialData }: { initialData: Row[] }) {
   const [query, setQuery] = useState('')
+  const [page, setPage] = useState(0)
 
   const filtered = initialData.filter(
     (inv) =>
       inv.invoiceNumber.toLowerCase().includes(query.toLowerCase()) ||
       (inv.client?.name ?? '').toLowerCase().includes(query.toLowerCase()),
   )
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  function handleSearch(v: string) { setQuery(v); setPage(0) }
 
   return (
     <div className="kf-card rounded-2xl">
@@ -24,7 +29,7 @@ export default function InvoicesTable({ initialData }: { initialData: Row[] }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search invoices…"
             className="kf-input w-full pl-9"
           />
@@ -49,7 +54,7 @@ export default function InvoicesTable({ initialData }: { initialData: Row[] }) {
                 </td>
               </tr>
             )}
-            {filtered.map((inv) => (
+            {paginated.map((inv) => (
               <tr
                 key={inv.id}
                 className="hover:bg-zinc-50 cursor-pointer transition"
@@ -75,6 +80,7 @@ export default function InvoicesTable({ initialData }: { initialData: Row[] }) {
           </tbody>
         </table>
       </div>
+      <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
     </div>
   )
 }

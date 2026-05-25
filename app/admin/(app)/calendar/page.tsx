@@ -1,34 +1,39 @@
 import { db } from '@/lib/admin/db'
 import { calendarEvents } from '@/lib/admin/db/schema'
-import { gte, asc } from 'drizzle-orm'
+import { asc } from 'drizzle-orm'
 import HeroSection from '@/components/admin/layout/HeroSection'
-import Link from 'next/link'
-import CalendarView from '@/components/admin/calendar/CalendarView'
+import FullCalendarView from '@/components/admin/calendar/FullCalendarView'
+import type { CalendarEventData } from '@/components/admin/calendar/EventModal'
 
 export const metadata = { title: 'Calendar — Kyfaru Admin' }
 export const dynamic = 'force-dynamic'
 
 export default async function CalendarPage() {
-  const now = new Date()
-  const events = await db
+  const rows = await db
     .select()
     .from(calendarEvents)
-    .where(gte(calendarEvents.startAt, now))
     .orderBy(asc(calendarEvents.startAt))
-    .limit(50)
+
+  const events: CalendarEventData[] = rows.map((e) => ({
+    id: e.id,
+    title: e.title,
+    type: (e.eventType ?? 'meeting') as CalendarEventData['type'],
+    startDate: e.startAt.toISOString(),
+    endDate: (e.endAt ?? e.startAt).toISOString(),
+    allDay: e.isAllDay ?? false,
+    location: e.location ?? undefined,
+    meetingLink: e.meetingLink ?? undefined,
+    description: e.description ?? undefined,
+    color: e.color ?? undefined,
+  }))
 
   return (
     <div className="space-y-6 kf-anim-in">
       <HeroSection
         title="Calendar"
-        subtitle="Upcoming events, meetings, and deadlines."
-        actions={
-          <Link href="/admin/calendar/new" className="kf-btn-primary">
-            New Event
-          </Link>
-        }
+        subtitle="Click any date to add an event. Drag events to reschedule."
       />
-      <CalendarView events={events} />
+      <FullCalendarView initialEvents={events} />
     </div>
   )
 }

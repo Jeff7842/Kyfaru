@@ -3,6 +3,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SessionProvider } from 'next-auth/react'
 import { useState } from 'react'
+import KfToaster from '@/components/admin/toast/KfToaster'
+import { toasterRef } from '@/lib/admin/toast'
 
 export default function AdminProviders({
   children,
@@ -24,7 +26,10 @@ export default function AdminProviders({
   )
   return (
     <SessionProvider>
-      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+      <QueryClientProvider client={qc}>
+        {children}
+        <KfToaster ref={toasterRef} defaultPosition="bottom-right" />
+      </QueryClientProvider>
     </SessionProvider>
   )
 }

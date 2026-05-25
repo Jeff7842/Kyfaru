@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   FolderKanban,
   Users,
+  UserCog,
   Wallet,
   CalendarDays,
   Bell,
@@ -46,6 +47,7 @@ const NAV: NavItem[] = [
 ]
 
 const SUPER_ADMIN_NAV: NavItem[] = [
+  { href: '/admin/users', label: 'Users', icon: UserCog },
   { href: '/admin/audit', label: 'Audit Log', icon: ShieldCheck },
 ]
 

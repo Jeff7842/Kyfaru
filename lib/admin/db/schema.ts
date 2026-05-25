@@ -29,6 +29,10 @@ export const userRoleEnum = pgEnum('user_role', [
   'admin',
   'manager',
   'viewer',
+  'communications',
+  'tech',
+  'finance',
+  'sales',
 ])
 
 export const projectStatusEnum = pgEnum('project_status', [
@@ -90,6 +94,13 @@ export const users = pgTable(
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     lastLoginAt: timestamp('last_login_at'),
     invitedById: uuid('invited_by_id'),
+    accessType: text('access_type').notNull().default('permanent'),
+    accessFrom: timestamp('access_from'),
+    accessUntil: timestamp('access_until'),
+    isFrozen: boolean('is_frozen').notNull().default(false),
+    githubAccessToken: text('github_access_token'),
+    githubTokenExpiry: timestamp('github_token_expiry'),
+    githubLogin: text('github_login'),
   },
   (t) => [index('users_email_idx').on(t.email)],
 )
@@ -234,6 +245,9 @@ export const projects = pgTable(
     tags: text('tags').array(),
     notes: text('notes'),
     progress: integer('progress').notNull().default(0), // 0..100
+    githubRepoUrl: text('github_repo_url'),
+    githubRepoOwner: text('github_repo_owner'),
+    githubRepoName: text('github_repo_name'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
     createdById: uuid('created_by_id').references(() => users.id),

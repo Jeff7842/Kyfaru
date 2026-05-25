@@ -3,8 +3,11 @@
 import { useState, useTransition } from 'react'
 import { BellRing, CheckCheck } from 'lucide-react'
 import { cn } from '@/lib/admin/utils'
-import { toast } from 'sonner'
+import { kfToast } from '@/lib/admin/toast'
+import Pagination from '@/components/admin/shared/Pagination'
 import type { Notification } from '@/lib/admin/db/schema'
+
+const PAGE_SIZE = 20
 
 export default function NotificationsList({
   initialData,
@@ -12,6 +15,7 @@ export default function NotificationsList({
   initialData: Notification[]
 }) {
   const [items, setItems] = useState(initialData)
+  const [page, setPage] = useState(0)
   const [pending, startTransition] = useTransition()
 
   async function markAllRead() {
@@ -21,14 +25,15 @@ export default function NotificationsList({
       })
       if (res.ok) {
         setItems((prev) => prev.map((n) => ({ ...n, isRead: true })))
-        toast.success('All notifications marked as read')
+        kfToast.success('All notifications marked as read')
       } else {
-        toast.error('Failed to mark notifications as read')
+        kfToast.error('Failed to mark notifications as read')
       }
     })
   }
 
   const unread = items.filter((n) => !n.isRead).length
+  const paginated = items.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   return (
     <div className="kf-card rounded-2xl">
@@ -61,7 +66,7 @@ export default function NotificationsList({
         </div>
       ) : (
         <div className="divide-y divide-[var(--kf-border)]">
-          {items.map((n) => (
+          {paginated.map((n) => (
             <div
               key={n.id}
               className={cn(
@@ -98,6 +103,7 @@ export default function NotificationsList({
           ))}
         </div>
       )}
+      <Pagination page={page} pageSize={PAGE_SIZE} total={items.length} onPageChange={setPage} />
     </div>
   )
 }

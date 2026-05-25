@@ -5,18 +5,29 @@ import Link from 'next/link'
 import { Search, Plus } from 'lucide-react'
 import { formatDate } from '@/lib/admin/utils'
 import StatusBadge from '@/components/admin/shared/StatusBadge'
+import Pagination from '@/components/admin/shared/Pagination'
 import type { Project, Client } from '@/lib/admin/db/schema'
 
 type Row = Project & { client: Client | null }
 
+const PAGE_SIZE = 20
+
 export default function ProjectsTable({ initialData }: { initialData: Row[] }) {
   const [query, setQuery] = useState('')
+  const [page, setPage] = useState(0)
 
   const filtered = initialData.filter(
     (p) =>
       p.name.toLowerCase().includes(query.toLowerCase()) ||
       (p.client?.name ?? '').toLowerCase().includes(query.toLowerCase()),
   )
+
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+
+  function handleSearch(v: string) {
+    setQuery(v)
+    setPage(0)
+  }
 
   return (
     <div className="kf-card rounded-2xl">
@@ -25,7 +36,7 @@ export default function ProjectsTable({ initialData }: { initialData: Row[] }) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search projects…"
             className="kf-input w-full pl-9"
           />
@@ -60,7 +71,7 @@ export default function ProjectsTable({ initialData }: { initialData: Row[] }) {
                 </td>
               </tr>
             )}
-            {filtered.map((p) => (
+            {paginated.map((p) => (
               <tr
                 key={p.id}
                 className="hover:bg-zinc-50 cursor-pointer transition"
@@ -92,6 +103,12 @@ export default function ProjectsTable({ initialData }: { initialData: Row[] }) {
           </tbody>
         </table>
       </div>
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={filtered.length}
+        onPageChange={setPage}
+      />
     </div>
   )
 }

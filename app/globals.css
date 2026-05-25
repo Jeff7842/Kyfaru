@@ -638,3 +638,114 @@ html.lenis, html.lenis body { height: auto; }
 /* Hide the public site's Lenis from interfering inside admin */
 .admin-root { overflow-x: hidden; }
 
+/* Shared form input */
+.admin-root .kf-input {
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--kf-border);
+  background: var(--kf-bg-card);
+  color: var(--kf-text);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.admin-root .kf-input:focus {
+  border-color: var(--kf-green);
+  box-shadow: 0 0 0 3px rgba(39,115,30,.15);
+}
+
+/* Modal form input (same but no height constraint) */
+.admin-root .kf-modal-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--kf-border);
+  background: var(--kf-bg-card);
+  color: var(--kf-text);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.admin-root .kf-modal-input:focus {
+  border-color: var(--kf-green);
+  box-shadow: 0 0 0 3px rgba(39,115,30,.15);
+}
+
+/* Primary button */
+.admin-root .kf-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: var(--kf-green);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background .15s ease;
+  cursor: pointer;
+}
+.admin-root .kf-btn-primary:hover { background: var(--kf-green-dark); }
+
+/* FullCalendar theme overrides */
+.admin-root .fc {
+  --fc-border-color: var(--kf-border);
+  --fc-today-bg-color: rgba(39,115,30,.06);
+  --fc-event-border-color: transparent;
+  --fc-page-bg-color: var(--kf-bg);
+  --fc-neutral-bg-color: var(--kf-bg-card);
+  font-family: var(--kf-font-body);
+  font-size: 0.825rem;
+}
+.admin-root .fc .fc-button {
+  background: var(--kf-bg-card) !important;
+  border: 1px solid var(--kf-border) !important;
+  color: var(--kf-text) !important;
+  border-radius: 0.5rem !important;
+  font-size: 0.8rem !important;
+  padding: 0.25rem 0.75rem !important;
+  box-shadow: none !important;
+  transition: background .15s ease !important;
+}
+.admin-root .fc .fc-button:hover {
+  background: var(--kf-green)/10 !important;
+  border-color: var(--kf-green) !important;
+}
+.admin-root .fc .fc-button-primary:not(.fc-button-active):not(:disabled) {
+  background: var(--kf-bg-card) !important;
+}
+.admin-root .fc .fc-button-active,
+.admin-root .fc .fc-button-primary.fc-button-active {
+  background: var(--kf-green) !important;
+  border-color: var(--kf-green) !important;
+  color: #fff !important;
+}
+.admin-root .fc .fc-toolbar-title {
+  font-size: 1rem !important;
+  font-weight: 600;
+  color: var(--kf-text);
+}
+.admin-root .fc .fc-col-header-cell {
+  background: var(--kf-bg-card);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--kf-text-muted);
+  padding: 0.5rem 0;
+}
+.admin-root .fc .fc-daygrid-day-number,
+.admin-root .fc .fc-list-day-cushion {
+  color: var(--kf-text);
+}
+.admin-root .fc .fc-event {
+  border-radius: 4px;
+  font-size: 0.775rem;
+  font-weight: 500;
+  padding: 1px 4px;
+  cursor: pointer;
+}
+.admin-root .fc .fc-daygrid-event-dot { border-color: var(--kf-green); }
+.admin-root .fc .fc-list-event:hover td { background: rgba(39,115,30,.06); }
+

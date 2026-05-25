@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import OtpModal from '@/components/admin/auth/OtpModal'
+import { kfToast } from '@/lib/admin/toast'
 
 export default function LoginForm({
   callbackUrl,
@@ -22,8 +23,9 @@ export default function LoginForm({
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(initialError ?? null)
+  const [showOtp, setShowOtp] = useState(false)
 
-  const target = callbackUrl ?? searchParams.get('callbackUrl') ?? '/admin'
+  const target = callbackUrl ?? searchParams.get('callbackUrl') ?? '/admin/dashboard'
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -39,16 +41,15 @@ export default function LoginForm({
         setError('Invalid email or password.')
         return
       }
-      // Issue OTP if 2FA — POST a server endpoint. For now redirect.
       const sendRes = await fetch('/api/admin/2fa/start', {
         method: 'POST',
         credentials: 'include',
       })
       const sendJson = await sendRes.json().catch(() => null)
       if (sendJson?.required) {
-        toast.success('Verification code sent')
-        router.replace('/admin/two-factor')
+        setShowOtp(true)
       } else {
+        kfToast.success('Signed in successfully')
         router.replace(target)
       }
     } catch (err) {
@@ -59,6 +60,13 @@ export default function LoginForm({
   }
 
   return (
+    <>
+      {showOtp && (
+        <OtpModal
+          callbackUrl={target}
+          onClose={() => setShowOtp(false)}
+        />
+      )}
     <form onSubmit={onSubmit} className="space-y-4">
       {googleEnabled && (
         <button
@@ -146,6 +154,7 @@ export default function LoginForm({
         Forgot password? Contact your administrator.
       </a>
     </form>
+    </>
   )
 }
 

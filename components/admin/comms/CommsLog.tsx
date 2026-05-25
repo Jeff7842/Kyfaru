@@ -3,7 +3,10 @@
 import { useState } from 'react'
 import { Search, Mail, MessageSquare, Smartphone } from 'lucide-react'
 import { cn } from '@/lib/admin/utils'
+import Pagination from '@/components/admin/shared/Pagination'
 import type { CommunicationLog } from '@/lib/admin/db/schema'
+
+const PAGE_SIZE = 20
 
 const CHANNEL_ICON = {
   email: Mail,
@@ -22,6 +25,7 @@ const STATUS_COLOR: Record<string, string> = {
 export default function CommsLog({ initialData }: { initialData: CommunicationLog[] }) {
   const [query, setQuery] = useState('')
   const [channel, setChannel] = useState<string>('all')
+  const [page, setPage] = useState(0)
 
   const filtered = initialData.filter((log) => {
     const matchesQuery =
@@ -31,6 +35,9 @@ export default function CommsLog({ initialData }: { initialData: CommunicationLo
     const matchesChannel = channel === 'all' || log.channel === channel
     return matchesQuery && matchesChannel
   })
+  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  function handleSearch(v: string) { setQuery(v); setPage(0) }
+  function handleChannel(v: string) { setChannel(v); setPage(0) }
 
   return (
     <div className="kf-card rounded-2xl space-y-4">
@@ -39,14 +46,14 @@ export default function CommsLog({ initialData }: { initialData: CommunicationLo
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search by recipient, subject, body…"
             className="kf-input w-full pl-9"
           />
         </div>
         <select
           value={channel}
-          onChange={(e) => setChannel(e.target.value)}
+          onChange={(e) => handleChannel(e.target.value)}
           className="kf-input w-full sm:w-36"
         >
           <option value="all">All channels</option>
@@ -62,7 +69,7 @@ export default function CommsLog({ initialData }: { initialData: CommunicationLo
         </p>
       ) : (
         <div className="divide-y divide-[var(--kf-border)]">
-          {filtered.map((log) => {
+          {paginated.map((log) => {
             const Icon = CHANNEL_ICON[log.channel] ?? Mail
             return (
               <div key={log.id} className="py-3 flex gap-3 items-start">
@@ -100,6 +107,7 @@ export default function CommsLog({ initialData }: { initialData: CommunicationLo
           })}
         </div>
       )}
+      <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
     </div>
   )
 }

@@ -8,6 +8,13 @@
       "when": 1779731877783,
       "tag": "0000_parched_miek",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779740453182,
+      "tag": "0001_daily_blackheart",
+      "breakpoints": true
     }
   ]
 }
