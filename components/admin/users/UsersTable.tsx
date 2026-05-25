@@ -12,8 +12,10 @@ import UserSlideOver from './UserSlideOver'
 import type { User } from '@/lib/admin/db/schema'
 import type { Role } from '@/lib/admin/permissions'
 
+type SafeUser = Omit<User, 'passwordHash' | 'githubAccessToken'>
+
 interface UsersTableProps {
-  initialUsers: User[]
+  initialUsers: SafeUser[]
   initialTotal: number
 }
 
@@ -21,13 +23,13 @@ const PAGE_SIZE = 20
 
 export default function UsersTable({ initialUsers, initialTotal }: UsersTableProps) {
   const router = useRouter()
-  const [users, setUsers] = useState<User[]>(initialUsers)
+  const [users, setUsers] = useState<SafeUser[]>(initialUsers)
   const [total, setTotal] = useState(initialTotal)
   const [page, setPage] = useState(0)
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
   const [slideOpen, setSlideOpen] = useState(false)
-  const [editing, setEditing] = useState<User | null>(null)
+  const [editing, setEditing] = useState<SafeUser | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const fetchUsers = useCallback(async (newPage: number, search: string) => {
@@ -63,12 +65,12 @@ export default function UsersTable({ initialUsers, initialTotal }: UsersTablePro
     setSlideOpen(true)
   }
 
-  function openEdit(u: User) {
+  function openEdit(u: SafeUser) {
     setEditing(u)
     setSlideOpen(true)
   }
 
-  async function handleFreeze(u: User) {
+  async function handleFreeze(u: SafeUser) {
     const res = await fetch(`/api/admin/users/${u.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -96,7 +98,7 @@ export default function UsersTable({ initialUsers, initialTotal }: UsersTablePro
     }
   }
 
-  function handleSaved(_saved: User) {
+  function handleSaved(_saved: SafeUser) {
     fetchUsers(page, q)
     router.refresh()
   }

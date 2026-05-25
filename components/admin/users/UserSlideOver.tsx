@@ -8,6 +8,8 @@ import { ROLE_LABELS } from '@/lib/admin/permissions'
 import type { Role } from '@/lib/admin/permissions'
 import type { User } from '@/lib/admin/db/schema'
 
+type SafeUser = Omit<User, 'passwordHash' | 'githubAccessToken'>
+
 const ALL_ROLES = Object.keys(ROLE_LABELS) as Role[]
 
 const ACCESS_TYPES = [
@@ -17,10 +19,10 @@ const ACCESS_TYPES = [
 ]
 
 interface UserSlideOverProps {
-  user: User | null
+  user: SafeUser | null
   open: boolean
   onClose: () => void
-  onSaved: (user: User) => void
+  onSaved: (user: SafeUser) => void
 }
 
 export default function UserSlideOver({ user, open, onClose, onSaved }: UserSlideOverProps) {
