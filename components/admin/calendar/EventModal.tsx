@@ -85,7 +85,13 @@ export default function EventModal({ open, event, onClose, onSaved, onDeleted }:
       const data = await res.json()
       if (!res.ok) { kfToast.error(data.error ?? 'Save failed'); return }
       kfToast.success(isEdit ? 'Event updated' : 'Event created')
-      onSaved({ ...body, id: data.event.id })
+      onSaved({
+        ...body,
+        id: data.event.id,
+        location: body.location ?? undefined,
+        meetingLink: body.meetingLink ?? undefined,
+        description: body.description ?? undefined,
+      })
       onClose()
     } catch { kfToast.error('Something went wrong') }
     finally { setSaving(false) }
