@@ -1,233 +1,83 @@
 // ============================================================
-// TERMS OF SERVICE PAGE
-// Legal document with sticky scroll-spy sidebar TOC.
+// TERMS OF SERVICE — MASTER HUB PAGE
+// Index of all Kyfaru legal documents.
 // ============================================================
 
+import Link from 'next/link'
+import { Icon } from '@iconify/react'
 import Header from '@/components/header/header'
 import Footer from '@/components/layout/Footer'
-import PageHero from '@/components/shared/PageHero'
-import LegalPageLayout, { type LegalSection } from '@/components/shared/LegalPageLayout'
 
-const SECTIONS: LegalSection[] = [
+const CARDS = [
   {
-    id: 'acceptance',
-    title: 'Acceptance of Terms',
-    content: (
-      <>
-        <p>
-          By accessing or using the Kyfaru website, products, or services
-          (collectively, the &ldquo;Services&rdquo;), you agree to be bound by these
-          Terms of Service. If you do not agree to these terms, please do not use
-          our Services.
-        </p>
-        <p>
-          These terms apply to all visitors, users, and others who access or use
-          the Services. By using the Services, you represent that you are at
-          least 18 years old, or the age of majority in your jurisdiction.
-        </p>
-      </>
-    ),
+    icon: 'ph:file-text-bold',
+    title: 'Service Agreement',
+    description:
+      'Scope of work, deliverables, timelines, change requests, and all obligations of both Kyfaru and the Client.',
+    href: '/terms/service-agreement',
+    linkLabel: 'Read →',
   },
   {
-    id: 'services',
-    title: 'Description of Services',
-    content: (
-      <>
-        <p>
-          Kyfaru provides software development, design, AI integration, and
-          consulting services for businesses and individuals. Specific Services
-          may include but are not limited to:
-        </p>
-        <ul className="list-disc pl-6 flex flex-col gap-2">
-          <li>Web and mobile application development</li>
-          <li>UI/UX design and brand systems</li>
-          <li>USSD solutions and integrations</li>
-          <li>AI integration powered by Mwamba AI</li>
-          <li>Backend, database, and infrastructure work</li>
-        </ul>
-        <p>
-          We reserve the right to modify, suspend, or discontinue any Service at
-          any time without prior notice.
-        </p>
-      </>
-    ),
+    icon: 'ph:shield-check-bold',
+    title: 'Privacy Policy',
+    description:
+      'How Kyfaru collects, stores, uses, and protects personal data in compliance with the Kenya Data Protection Act 2019 and applicable international law.',
+    href: '/privacy-policy',
+    linkLabel: 'Read →',
   },
   {
-    id: 'user-obligations',
-    title: 'User Obligations',
-    content: (
-      <>
-        <p>You agree to:</p>
-        <ul className="list-disc pl-6 flex flex-col gap-2">
-          <li>Provide accurate, current, and complete information when requested.</li>
-          <li>Use the Services only for lawful purposes and in compliance with all applicable laws.</li>
-          <li>Not interfere with or disrupt the Services or servers.</li>
-          <li>Not attempt to gain unauthorized access to any part of the Services.</li>
-          <li>Maintain the confidentiality of any account credentials provided to you.</li>
-        </ul>
-      </>
-    ),
+    icon: 'ph:headset-bold',
+    title: 'Support & Maintenance Policy',
+    description:
+      'Free support periods, Monthly Maintenance Retainer terms, response times, monthly reports, and service suspension procedures.',
+    href: '/terms/support-policy',
+    linkLabel: 'Read →',
   },
   {
-    id: 'payment',
-    title: 'Payment & Billing',
-    content: (
-      <>
-        <p>
-          Fees for project-based engagements are agreed upon in writing before
-          work begins, typically through a signed Statement of Work or
-          Contract. Payment milestones, deliverables, and timelines are
-          specified in each individual agreement.
-        </p>
-        <p>
-          Unless otherwise stated, all fees are quoted in Kenyan Shillings (KES).
-          Late payments may incur additional fees or pause active work until
-          accounts are settled.
-        </p>
-      </>
-    ),
+    icon: 'ph:currency-circle-dollar-bold',
+    title: 'Refund & Payment Policy',
+    description:
+      'Payment milestones, forfeit amounts, late payment charges, cancellation consequences, and credential handover conditions.',
+    href: '/terms/refund-policy',
+    linkLabel: 'Read →',
   },
   {
-    id: 'intellectual-property',
-    title: 'Intellectual Property',
-    content: (
-      <>
-        <p>
-          Upon full payment of all fees owed, ownership of deliverables created
-          specifically for you under a project agreement transfers to you,
-          subject to any third-party licences and any Kyfaru pre-existing tools,
-          libraries, or frameworks used in delivery.
-        </p>
-        <p>
-          Kyfaru retains ownership of its proprietary methodologies, internal
-          tools, and any reusable code components that exist independently of
-          your project. We may showcase work in our portfolio unless otherwise
-          agreed in writing.
-        </p>
-      </>
-    ),
+    icon: 'ph:check-square-bold',
+    title: 'Acceptable Use Policy',
+    description:
+      'What clients may and may not do with systems built by Kyfaru, including data handling, third-party integrations, and legal compliance obligations.',
+    href: '/terms/acceptable-use',
+    linkLabel: 'Read →',
   },
   {
-    id: 'confidentiality',
-    title: 'Confidentiality',
-    content: (
-      <>
-        <p>
-          We treat all client information, code, designs, and business details
-          as confidential. We do not disclose project specifics to third parties
-          without your written consent, except as required by law.
-        </p>
-        <p>
-          Mutual NDAs are available upon request for sensitive engagements.
-        </p>
-      </>
-    ),
+    icon: 'ph:envelope-simple-bold',
+    title: 'Legal Enquiries',
+    description:
+      'To request a printed copy of any terms, report a concern, or contact Kyfaru\'s legal team.',
+    email: 'legal@kyfaru.com',
+    href: null,
+    linkLabel: null,
+  },
+]
+
+const LAW_COLS = [
+  {
+    icon: 'ph:scales-bold',
+    label: 'GOVERNING LAW',
+    value: 'Laws of Kenya',
+    sub: 'Law of Contract Act, Cap. 23',
   },
   {
-    id: 'warranties',
-    title: 'Warranties & Disclaimers',
-    content: (
-      <>
-        <p>
-          We deliver Services with reasonable skill and care, in line with
-          industry standards. However, the Services are provided &ldquo;as
-          is&rdquo; without warranties of any kind, either express or implied,
-          including but not limited to merchantability or fitness for a
-          particular purpose.
-        </p>
-        <p>
-          We do not guarantee that the Services will be uninterrupted,
-          error-free, or free from external attacks or vulnerabilities.
-        </p>
-      </>
-    ),
+    icon: 'ph:gavel-bold',
+    label: 'DISPUTE RESOLUTION',
+    value: 'Mediation then Arbitration',
+    sub: 'Arbitration Act, Cap. 49, Nairobi',
   },
   {
-    id: 'limitation-of-liability',
-    title: 'Limitation of Liability',
-    content: (
-      <>
-        <p>
-          To the maximum extent permitted by law, Kyfaru shall not be liable for
-          any indirect, incidental, special, consequential, or punitive damages,
-          including loss of profits, data, or business, even if advised of the
-          possibility of such damages.
-        </p>
-        <p>
-          Our total cumulative liability for any claim related to the Services
-          shall not exceed the total fees paid by you to Kyfaru in the twelve
-          (12) months preceding the claim.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 'termination',
-    title: 'Termination',
-    content: (
-      <>
-        <p>
-          Either party may terminate a project engagement with written notice as
-          specified in the relevant Statement of Work. Upon termination, you
-          remain responsible for all fees for Services performed up to the
-          termination date.
-        </p>
-        <p>
-          We may terminate or suspend access to the Services immediately,
-          without notice, for any breach of these Terms.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 'governing-law',
-    title: 'Governing Law',
-    content: (
-      <>
-        <p>
-          These Terms shall be governed by and construed in accordance with the
-          laws of the Republic of Kenya, without regard to its conflict of law
-          provisions.
-        </p>
-        <p>
-          Any disputes arising out of or related to these Terms shall be
-          resolved through good-faith negotiation. If unresolved, disputes
-          shall be submitted to the courts of Nairobi, Kenya.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 'changes',
-    title: 'Changes to Terms',
-    content: (
-      <>
-        <p>
-          We reserve the right to modify these Terms at any time. We will
-          provide notice of material changes by posting the updated Terms on
-          our website with a new &ldquo;last updated&rdquo; date.
-        </p>
-        <p>
-          Your continued use of the Services after such changes constitutes
-          acceptance of the new Terms.
-        </p>
-      </>
-    ),
-  },
-  {
-    id: 'contact',
-    title: 'Contact Us',
-    content: (
-      <>
-        <p>
-          Questions about these Terms? Reach us at{' '}
-          <a href="mailto:legal@kyfaru.com" className="text-ky-gold hover:text-ky-gold-hi transition-colors">
-            legal@kyfaru.com
-          </a>{' '}
-          or through the contact form on our website.
-        </p>
-      </>
-    ),
+    icon: 'ph:shield-bold',
+    label: 'DATA PROTECTION',
+    value: 'Kenya DPA 2019 Compliant',
+    sub: 'Office of the Data Protection Commissioner',
   },
 ]
 
@@ -235,17 +85,136 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-ky-base">
       <Header />
-      <PageHero
-        label="Legal"
-        labelIcon="heroicons:scale"
-        headline={{
-          lead: 'Terms of',
-          accent: 'Service',
-          tail: '.',
-        }}
-        subtitle="The rules of engagement when working with Kyfaru. Please read carefully."
-      />
-      <LegalPageLayout sections={SECTIONS} lastUpdated="May 2026" />
+
+      {/* ─── HERO ─────────────────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-ky-green-mid pt-32 md:pt-44 pb-20 md:pb-28">
+        <div className="absolute inset-0 ky-hero-bg-dots opacity-[0.18] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute top-10 left-1/3 w-[420px] h-[420px] rounded-full bg-white/5 blur-[100px]" />
+          <div className="absolute bottom-0 right-1/4 w-[340px] h-[340px] rounded-full bg-ky-gold/10 blur-[100px]" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-6 text-center">
+          <p className="text-[11px] font-display tracking-[0.25em] uppercase text-ky-gold mb-4">
+            Legal Information
+          </p>
+          <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-5 tracking-tight">
+            Kyfaru Terms of Service
+          </h1>
+          <p className="text-base md:text-lg text-white/75 max-w-2xl mx-auto leading-relaxed font-inter mb-10">
+            These terms govern all projects, services, and engagements undertaken by Kyfaru. By signing a Kyfaru Project Agreement, you agree to these
+            terms in full.
+          </p>
+
+          {/* Info pills */}
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              { icon: 'ph:calendar-blank-bold', text: 'Effective: 1 January 2025' },
+              { icon: 'ph:map-pin-bold', text: 'Governing Law: Kenya' },
+              { icon: 'ph:scales-bold', text: 'Arbitration: Nairobi' },
+            ].map((pill) => (
+              <span
+                key={pill.text}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/20 text-white text-[13px] font-inter"
+              >
+                <Icon icon={pill.icon} className="w-3.5 h-3.5 text-ky-gold shrink-0" />
+                {pill.text}
+              </span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── INCORPORATION NOTICE ─────────────────────────────── */}
+      <section className="bg-ky-base py-10">
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="flex gap-5 bg-ky-gold/8 border border-ky-gold/30 border-l-[5px] border-l-ky-gold ky-rounded p-6 md:p-8">
+            <Icon icon="ph:scales-bold" className="w-8 h-8 text-ky-gold shrink-0 mt-0.5" />
+            <div>
+              <p className="text-base font-display font-semibold text-ky-ivory mb-2">
+                These terms are incorporated by reference into every Kyfaru Project Agreement.
+              </p>
+              <p className="text-sm text-ky-muted leading-relaxed font-inter">
+                When a Client signs a Kyfaru Project Agreement, they simultaneously agree to all terms
+                published on this page and all sub-pages listed below. A printed copy of any page is
+                available upon written request.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── LEGAL DOCUMENTS GRID ─────────────────────────────── */}
+      <section className="bg-ky-base py-16 md:py-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <h2 className="text-center text-3xl md:text-4xl font-display font-bold text-ky-ivory mb-12">
+            Our Legal Documents
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {CARDS.map((card) => (
+              <div
+                key={card.title}
+                className="group bg-ky-surface border border-ky-border ky-rounded p-7 flex flex-col gap-4 hover:border-ky-green-hi hover:shadow-[0_8px_32px_rgba(74,175,110,0.10)] hover:-translate-y-1 transition-all duration-200"
+              >
+                <Icon icon={card.icon} className="w-9 h-9 text-ky-green-hi" />
+                <div className="flex-1">
+                  <h3 className="text-lg font-display font-semibold text-ky-ivory mb-2">{card.title}</h3>
+                  <p className="text-sm text-ky-muted leading-relaxed font-inter">{card.description}</p>
+                  {card.email && (
+                    <a
+                      href={`mailto:${card.email}`}
+                      className="mt-3 inline-block text-sm text-ky-gold hover:text-ky-gold-hi transition-colors font-display"
+                    >
+                      {card.email}
+                    </a>
+                  )}
+                </div>
+                {card.href && (
+                  <Link
+                    href={card.href}
+                    className="text-sm font-display font-semibold text-ky-green-hi hover:text-ky-gold transition-colors"
+                  >
+                    {card.linkLabel}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── GOVERNING LAW STRIP ──────────────────────────────── */}
+      <section className="bg-ky-dark border-t border-ky-border py-14">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6">
+            {LAW_COLS.map((col) => (
+              <div key={col.label} className="flex items-start gap-4">
+                <Icon icon={col.icon} className="w-8 h-8 text-ky-green-hi shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[10px] font-display tracking-[0.22em] uppercase text-ky-faint mb-1">
+                    {col.label}
+                  </p>
+                  <p className="text-lg font-display font-bold text-ky-ivory">{col.value}</p>
+                  <p className="text-[13px] text-ky-muted font-inter mt-0.5">{col.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── LAST UPDATED STRIP ───────────────────────────────── */}
+      <section className="bg-ky-base border-t border-ky-border py-6">
+        <div className="max-w-6xl mx-auto px-6">
+          <p className="text-[13px] text-center text-ky-faint font-inter">
+            These terms were last updated on <span className="text-ky-muted">1 January 2025</span>. Version{' '}
+            <span className="text-ky-muted">1.0</span>. Kyfaru reserves the right to update these terms at
+            any time with 30 days notice to active clients. Continued engagement after the notice period
+            constitutes acceptance.
+          </p>
+        </div>
+      </section>
+
       <Footer />
     </div>
   )

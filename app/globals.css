@@ -531,3 +531,110 @@ html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
 .lenis.lenis-stopped { overflow: hidden; }
 
+/* ================================================================
+   KYFARU ADMIN DASHBOARD TOKENS
+   Scoped to .admin-root so the public site is unaffected.
+   ================================================================ */
+.admin-root {
+  /* Brand */
+  --kf-green: #27731E;
+  --kf-green-dark: #1A5C32;
+  --kf-green-light: #E8F5E4;
+  --kf-yellow: #FFC800;
+  --kf-yellow-light: #FFF9E6;
+
+  /* Surfaces */
+  --kf-bg: #F8F9FA;
+  --kf-bg-card: #FFFFFF;
+  --kf-border: #E5E7EB;
+  --kf-border-strong: #D1D5DB;
+
+  /* Text */
+  --kf-text: #111827;
+  --kf-text-muted: #6B7280;
+  --kf-text-faint: #9CA3AF;
+
+  /* Status */
+  --kf-active: #27731E;
+  --kf-pending: #F59E0B;
+  --kf-overdue: #EF4444;
+  --kf-completed: #3B82F6;
+  --kf-cancelled: #6B7280;
+
+  /* Sidebar */
+  --kf-sb-bg: #0B1410;
+  --kf-sb-text: #E5E7EB;
+  --kf-sb-hover: rgba(255,255,255,0.06);
+
+  /* Fonts */
+  --kf-font-display: var(--font-syne), system-ui, sans-serif;
+  --kf-font-body: var(--font-dm-sans), var(--font-inter), system-ui, sans-serif;
+  --kf-font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", monospace;
+
+  background: var(--kf-bg);
+  color: var(--kf-text);
+  font-family: var(--kf-font-body);
+}
+
+.admin-root.dark {
+  --kf-bg: #0a1109;
+  --kf-bg-card: #111a13;
+  --kf-border: #1f2a23;
+  --kf-border-strong: #2a3a30;
+  --kf-text: #ede9dc;
+  --kf-text-muted: #9aa49c;
+  --kf-text-faint: #6b756c;
+}
+
+/* Card helper */
+.admin-root .kf-card {
+  background: var(--kf-bg-card);
+  border: 1px solid var(--kf-border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.admin-root .kf-card:hover {
+  border-color: var(--kf-green);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+}
+
+/* Hero gradient */
+.admin-root .kf-hero {
+  background: linear-gradient(120deg, #111827 0%, #1A5C32 100%);
+  color: #fff;
+}
+
+/* Sidebar active pill */
+.admin-root .kf-sb-active {
+  background: linear-gradient(90deg, rgba(39,115,30,0.25), transparent);
+  border-left: 3px solid var(--kf-green);
+}
+
+/* Fine grain shadow utility */
+.admin-root .kf-shadow-line {
+  box-shadow: inset 0 -1px 0 var(--kf-border);
+}
+
+/* Status badge base */
+.admin-root .kf-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+}
+
+@keyframes kf-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.admin-root .kf-anim-in { animation: kf-fade-up .3s ease-out both; }
+
+/* Hide the public site's Lenis from interfering inside admin */
+.admin-root { overflow-x: hidden; }
+

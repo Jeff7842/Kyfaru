@@ -21,10 +21,10 @@ export const ecosystemBranches: EcosystemBranch[] = [
   },
   {
     id: 'stackable',
-    name: 'Stackable & Stackable Academy',
+    name: 'Stackable',
     tagline: 'Education technology for African schools',
     description:
-      'Stackable is a complete school management system. Stackable Academy is the digital learning arm — technology education, skills training, and online learning for students and institutions across Africa.',
+      'Stackable is a complete school management system. Stackable is the digital learning arm — technology education, skills training, and online learning for students and institutions across Africa.',
     icon: 'heroicons:academic-cap',
     accentClass: 'text-ky-green-hi',
     borderClass: 'border-ky-green',

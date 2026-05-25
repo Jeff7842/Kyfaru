@@ -31,7 +31,7 @@ export const blogPosts: BlogPost[] = [
     title: 'Stackable Academy Is Now Live',
     excerpt:
       'Our digital learning arm officially opens its doors. Free starter courses for educators across East Africa.',
-    publishedAt: '2025-03-22',
+    publishedAt: '2026-03-22',
     category: 'Product Update',
     readTime: '3 min read',
   },

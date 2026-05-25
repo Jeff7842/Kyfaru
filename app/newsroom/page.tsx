@@ -15,8 +15,8 @@ const ANNOUNCEMENTS = [
   {
     date: '2025-05-12',
     tag: 'Product',
-    title: 'Stackable Academy Opens Free Starter Courses for Educators',
-    body: 'After a six-month pilot with three Nairobi schools, Stackable Academy — the digital learning arm of Kyfaru — is now open to all East African educators. Three free starter courses are live today: Classroom AI Basics, Digital Records 101, and Mobile-First Teaching.',
+    title: 'Stackable Opens Free Starter Courses for Educators',
+    body: 'After a six-month pilot with three Nairobi schools, Stackable — the digital learning arm of Kyfaru — is now open to all East African educators. Three free starter courses are live today: Classroom AI Basics, Digital Records 101, and Mobile-First Teaching.',
     link: '#',
   },
   {

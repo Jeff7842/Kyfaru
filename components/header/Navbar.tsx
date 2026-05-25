@@ -77,7 +77,7 @@ const NAV: NavEntry[] = [
         title: 'The Kyfaru Ecosystem',
         links: [
           { label: 'Mwamba AI',          description: 'African intelligence engine',  href: '/about#ecosystem', icon: 'heroicons:cpu-chip',     accent: 'text-ky-gold' },
-          { label: 'Stackable Academy',  description: 'Industry-ready tech skills',   href: '/about#ecosystem', icon: 'heroicons:academic-cap', accent: 'text-ky-green-hi' },
+          { label: 'Stackable',          description: 'Industry-ready tech skills',   href: '/about#ecosystem', icon: 'heroicons:academic-cap', accent: 'text-ky-green-hi' },
           { label: 'Kiliforge',          description: 'Research & development lab',   href: '/about#ecosystem', icon: 'heroicons:beaker',       accent: 'text-ky-gold-hi' },
           { label: 'Kyfaru Core',        description: 'Engineering studio',           href: '/about#ecosystem', icon: 'heroicons:cube',         accent: 'text-ky-green' },
         ],

@@ -127,7 +127,7 @@ export default function Footer() {
             © {currentYear} Kyfaru. Designed and built in Africa.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/privacy" className="text-xs text-ky-faint hover:text-ky-ivory transition-colors font-inter">
+            <Link href="/privacy-policy" className="text-xs text-ky-faint hover:text-ky-ivory transition-colors font-inter">
               Privacy Policy
             </Link>
             <Link href="/terms" className="text-xs text-ky-faint hover:text-ky-ivory transition-colors font-inter">

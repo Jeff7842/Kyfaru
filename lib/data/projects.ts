@@ -60,7 +60,7 @@ export const projects: Project[] = [
   },
   {
     id: 'proj-005',
-    title: 'Stackable Academy',
+    title: 'Stackable',
     description:
       'A school management operating system for institutions, teachers, and guardians. Built with Next.js, Tailwind & Go backend — featuring role-based dashboards, academic tracking, and modular institutional workflows.',
     liveUrl: 'https://staqable.app',
