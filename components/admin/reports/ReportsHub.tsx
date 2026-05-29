@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { Download, Loader2 } from 'lucide-react'
-import { toast } from 'sonner'
+import { kfToast as toast } from '@/lib/admin/toast'
 
 const REPORTS = [
   {

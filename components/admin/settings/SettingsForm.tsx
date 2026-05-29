@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { toast } from 'sonner'
+import { kfToast as toast } from '@/lib/admin/toast'
 import { Loader2 } from 'lucide-react'
 import type { User } from '@/lib/admin/db/schema'
 

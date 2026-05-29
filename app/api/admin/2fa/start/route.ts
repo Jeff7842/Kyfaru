@@ -10,7 +10,7 @@ import { db } from '@/lib/admin/db'
 import { users } from '@/lib/admin/db/schema'
 import { generateOTP, storeOTP } from '@/lib/admin/otp'
 import { sendEmail } from '@/lib/admin/comms/email'
-import { sendSMS } from '@/lib/admin/comms/sms'
+import { sendSmsTwilio, sendWhatsAppTwilio } from '@/lib/admin/comms/twilio'
 
 export async function POST() {
   const session = await auth()
@@ -37,8 +37,10 @@ export async function POST() {
       html: `<p>Your code is <b style="font-size:24px;letter-spacing:4px">${code}</b>. It expires in 10 minutes.</p>`,
       text: `Your Kyfaru code: ${code} (expires in 10 minutes)`,
     })
-  } else if ((channel === 'sms' || channel === 'whatsapp') && user.phone) {
-    await sendSMS({ to: user.phone, message: `Kyfaru code: ${code} (10 min)` })
+  } else if (channel === 'whatsapp' && user.phone) {
+    await sendWhatsAppTwilio({ to: user.phone, message: `Kyfaru code: ${code} (10 min)` })
+  } else if (channel === 'sms' && user.phone) {
+    await sendSmsTwilio({ to: user.phone, message: `Kyfaru code: ${code} (10 min)` })
   }
 
   return NextResponse.json({ required: true, channel })

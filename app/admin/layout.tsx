@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { Toaster } from 'sonner'
 import AdminProviders from '@/components/admin/AdminProviders'
 
 export const metadata: Metadata = {
@@ -15,10 +14,7 @@ export default function AdminLayout({
 }) {
   return (
     <div className="admin-root min-h-screen w-full">
-      <AdminProviders>
-        {children}
-        <Toaster richColors closeButton position="top-right" />
-      </AdminProviders>
+      <AdminProviders>{children}</AdminProviders>
     </div>
   )
 }

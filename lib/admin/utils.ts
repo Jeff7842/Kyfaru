@@ -37,13 +37,26 @@ export function makeInvoiceCode(year: number, sequence: number) {
 }
 
 // ─── Date ─────────────────────────────────────────────────
+// Day-first ordering (e.g. "28 May 2026") per Kenyan convention.
 export function formatDate(d: Date | string | null | undefined): string {
   if (!d) return '—'
   const date = typeof d === 'string' ? new Date(d) : d
-  return date.toLocaleDateString('en-KE', {
-    year: 'numeric',
-    month: 'short',
+  return date.toLocaleDateString('en-GB', {
     day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+// Includes the weekday — used in documents and detailed tables (e.g. "Thu, 28 May 2026").
+export function formatDateLong(d: Date | string | null | undefined): string {
+  if (!d) return '—'
+  const date = typeof d === 'string' ? new Date(d) : d
+  return date.toLocaleDateString('en-GB', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   })
 }
 

@@ -1,10 +1,10 @@
 import { db } from '@/lib/admin/db'
 import { invoices, expenses } from '@/lib/admin/db/schema'
-import { desc, eq, sql, and, gte } from 'drizzle-orm'
+import { eq, sql, and, gte } from 'drizzle-orm'
 import HeroSection from '@/components/admin/layout/HeroSection'
-import Link from 'next/link'
 import KpiCard from '@/components/admin/dashboard/KpiCard'
 import InvoicesTable from '@/components/admin/finance/InvoicesTable'
+import ExpensesTable from '@/components/admin/finance/ExpensesTable'
 
 export const metadata = { title: 'Finance — Kyfaru Admin' }
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic'
 export default async function FinancePage() {
   const startOfYear = new Date(new Date().getFullYear(), 0, 1)
 
-  const [totalRevenue, totalExpenses, pendingAmount, recentInvoices] = await Promise.all([
+  const [totalRevenue, totalExpenses, pendingAmount] = await Promise.all([
     db
       .select({ sum: sql<string>`coalesce(sum(amount),0)::text` })
       .from(invoices)
@@ -30,12 +30,6 @@ export default async function FinancePage() {
       .from(invoices)
       .where(eq(invoices.status, 'sent'))
       .then((r) => parseFloat(r[0]?.sum ?? '0')),
-
-    db.query.invoices.findMany({
-      limit: 20,
-      orderBy: [desc(invoices.createdAt)],
-      with: { client: true },
-    }),
   ])
 
   return (
@@ -43,11 +37,6 @@ export default async function FinancePage() {
       <HeroSection
         title="Finance"
         subtitle="Revenue, invoices, expenses, and profitability overview."
-        actions={
-          <Link href="/admin/finance/invoices/new" className="kf-btn-primary">
-            New Invoice
-          </Link>
-        }
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -56,7 +45,15 @@ export default async function FinancePage() {
         <KpiCard title="Outstanding" value={pendingAmount} format="money" icon="Clock" color="yellow" />
       </div>
 
-      <InvoicesTable initialData={recentInvoices} />
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-[var(--kf-text)]">Invoices</h2>
+        <InvoicesTable />
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold text-[var(--kf-text)]">Expenses</h2>
+        <ExpensesTable />
+      </div>
     </div>
   )
 }

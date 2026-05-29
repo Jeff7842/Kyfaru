@@ -1,86 +1,79 @@
 'use client'
 
 import { useState } from 'react'
-import { Search } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Pencil, Trash2, Plus, FileDown } from 'lucide-react'
 import { formatMoney, formatDate } from '@/lib/admin/utils'
 import StatusBadge from '@/components/admin/shared/StatusBadge'
-import Pagination from '@/components/admin/shared/Pagination'
+import DataTable, { type Column } from '@/components/admin/shared/DataTable'
+import InvoiceFormDrawer from '@/components/admin/finance/InvoiceFormDrawer'
+import { useConfirm } from '@/hooks/useConfirm'
+import { kfToast } from '@/lib/admin/toast'
 import type { Invoice, Client } from '@/lib/admin/db/schema'
 
 type Row = Invoice & { client: Client | null }
-const PAGE_SIZE = 20
+const QUERY_KEY = 'admin-invoices'
 
-export default function InvoicesTable({ initialData }: { initialData: Row[] }) {
-  const [query, setQuery] = useState('')
-  const [page, setPage] = useState(0)
+export default function InvoicesTable() {
+  const qc = useQueryClient()
+  const confirm = useConfirm()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editing, setEditing] = useState<Invoice | null>(null)
 
-  const filtered = initialData.filter(
-    (inv) =>
-      inv.invoiceNumber.toLowerCase().includes(query.toLowerCase()) ||
-      (inv.client?.name ?? '').toLowerCase().includes(query.toLowerCase()),
-  )
-  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
-  function handleSearch(v: string) { setQuery(v); setPage(0) }
+  const refresh = () => qc.invalidateQueries({ queryKey: [QUERY_KEY] })
+
+  async function handleDelete(inv: Row) {
+    const ok = await confirm({
+      title: `Cancel ${inv.invoiceNumber}?`,
+      description: 'The invoice will be marked cancelled.',
+      variant: 'danger',
+      confirmLabel: 'Cancel invoice',
+    })
+    if (!ok) return
+    const res = await fetch(`/api/admin/invoices/${inv.id}`, { method: 'DELETE' })
+    if (!res.ok) return kfToast.error('Delete failed')
+    kfToast.success('Invoice cancelled')
+    refresh()
+  }
+
+  const columns: Column<Row>[] = [
+    { key: 'invoiceNumber', header: 'Invoice #', render: (i) => <span className="font-medium text-[var(--kf-text)]">{i.invoiceNumber}</span> },
+    { key: 'client', header: 'Client', render: (i) => <span className="text-[var(--kf-text-muted)]">{i.client?.name ?? '—'}</span> },
+    { key: 'amount', header: 'Amount', render: (i) => <span className="font-semibold">{formatMoney(Number(i.amount))}</span> },
+    { key: 'due', header: 'Due', render: (i) => <span className="text-[var(--kf-text-muted)]">{formatDate(i.dueDate)}</span> },
+    { key: 'status', header: 'Status', render: (i) => <StatusBadge status={i.status} type="invoice" /> },
+  ]
 
   return (
-    <div className="kf-card rounded-2xl">
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-          <input
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search invoices…"
-            className="kf-input w-full pl-9"
-          />
-        </div>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--kf-border)] text-xs text-[var(--kf-text-muted)] uppercase tracking-wide">
-              <th className="py-2 text-left font-medium">Invoice #</th>
-              <th className="py-2 text-left font-medium">Client</th>
-              <th className="py-2 text-left font-medium">Amount</th>
-              <th className="py-2 text-left font-medium">Due</th>
-              <th className="py-2 text-left font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--kf-border)]">
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={5} className="py-8 text-center text-[var(--kf-text-muted)]">
-                  No invoices found.
-                </td>
-              </tr>
-            )}
-            {paginated.map((inv) => (
-              <tr
-                key={inv.id}
-                className="hover:bg-zinc-50 cursor-pointer transition"
-                onClick={() => (window.location.href = `/admin/finance/invoices/${inv.id}`)}
-              >
-                <td className="py-3 pr-4 font-medium text-[var(--kf-text)]">
-                  {inv.invoiceNumber}
-                </td>
-                <td className="py-3 pr-4 text-[var(--kf-text-muted)]">
-                  {inv.client?.name ?? '—'}
-                </td>
-                <td className="py-3 pr-4 font-semibold">
-                  {formatMoney(Number(inv.amount))}
-                </td>
-                <td className="py-3 pr-4 text-[var(--kf-text-muted)]">
-                  {formatDate(inv.dueDate)}
-                </td>
-                <td className="py-3">
-                  <StatusBadge status={inv.status} type="invoice" />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
-    </div>
+    <>
+      <DataTable<Row>
+        queryKey={QUERY_KEY}
+        endpoint="/api/admin/invoices"
+        rowsKey="invoices"
+        getRowId={(i) => i.id}
+        columns={columns}
+        searchPlaceholder="Search invoices…"
+        emptyLabel="No invoices found."
+        toolbar={
+          <button onClick={() => { setEditing(null); setDrawerOpen(true) }} className="kf-btn-primary flex items-center gap-1.5 whitespace-nowrap">
+            <Plus className="w-4 h-4" /> New Invoice
+          </button>
+        }
+        actions={(inv) => (
+          <>
+            <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noreferrer" aria-label="Download PDF" className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition">
+              <FileDown className="w-3.5 h-3.5" />
+            </a>
+            <button onClick={() => { setEditing(inv); setDrawerOpen(true) }} aria-label="Edit" className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition">
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => handleDelete(inv)} aria-label="Delete" className="p-1.5 rounded-md text-zinc-500 hover:bg-red-50 hover:text-red-600 transition">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </>
+        )}
+      />
+      <InvoiceFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} invoice={editing} onSaved={refresh} />
+    </>
   )
 }

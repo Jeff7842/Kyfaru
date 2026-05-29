@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useUI } from '@/store/admin/ui'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
+import { useLogout } from '@/hooks/useLogout'
 import { X, LogOut } from 'lucide-react'
 import { useEffect } from 'react'
 import {
@@ -38,6 +39,7 @@ export default function MobileNav() {
   const pathname = usePathname()
   const { data } = useSession()
   const role = ((data?.user as { role?: Role } | undefined)?.role ?? 'viewer') as Role
+  const logout = useLogout()
 
   useEffect(() => {
     setMobileNavOpen(false)
@@ -117,7 +119,7 @@ export default function MobileNav() {
             </div>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: '/admin/login' })}
+            onClick={logout}
             className="p-2 text-zinc-400 hover:text-white"
           >
             <LogOut className="w-4 h-4" />

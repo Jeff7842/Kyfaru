@@ -200,6 +200,8 @@ export const clients = pgTable(
     industry: text('industry'),
     logoUrl: text('logo_url'),
     address: text('address'),
+    country: text('country'),
+    county: text('county'),
     kraPin: text('kra_pin'),
     notes: text('notes'),
     isActive: boolean('is_active').notNull().default(true),
@@ -238,6 +240,7 @@ export const projects = pgTable(
     currency: text('currency').notNull().default('KES'),
     scopeDocument: jsonb('scope_document'),
     techStack: text('tech_stack').array(),
+    stack: jsonb('stack'), // structured [{ name, category, custom }]
     termsVersion: text('terms_version').default('v1.0'),
     contractSignedAt: timestamp('contract_signed_at'),
     contractSignedBy: text('contract_signed_by'),
@@ -417,11 +420,18 @@ export const communicationLogs = pgTable(
     projectId: uuid('project_id').references(() => projects.id),
     clientId: uuid('client_id').references(() => clients.id),
     sentById: uuid('sent_by_id').references(() => users.id),
+    threadId: uuid('thread_id'),
+    attachments: jsonb('attachments'), // [{ url, name, type, size }]
+    mediaType: text('media_type'),
+    replyToId: uuid('reply_to_id'),
+    deliveredAt: timestamp('delivered_at'),
+    readAt: timestamp('read_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [
     index('comms_client_idx').on(t.clientId),
     index('comms_channel_idx').on(t.channel),
+    index('comms_thread_idx').on(t.threadId),
   ],
 )
 
@@ -480,6 +490,18 @@ export const messageTemplates = pgTable('message_templates', {
   variables: text('variables').array(), // e.g. ['client_name', 'invoice_number']
   createdAt: timestamp('created_at').defaultNow().notNull(),
   createdById: uuid('created_by_id').references(() => users.id),
+})
+
+// ────────────────────────────────────────────────────────────
+// DASHBOARD LAYOUTS (per-user customizable widgets)
+// ────────────────────────────────────────────────────────────
+
+export const dashboardLayouts = pgTable('dashboard_layouts', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  layout: jsonb('layout').notNull(), // [{ widgetId, size }]
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
 // ────────────────────────────────────────────────────────────

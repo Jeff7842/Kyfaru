@@ -4,7 +4,8 @@ import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { signOut, useSession } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
+import { useLogout } from '@/hooks/useLogout'
 import {
   LayoutDashboard,
   FolderKanban,
@@ -57,6 +58,7 @@ export default function Sidebar() {
   const { data } = useSession()
   const user = (data?.user ?? null) as SessUser
   const role = (user?.role ?? 'viewer') as Role
+  const logout = useLogout()
 
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + '/')
@@ -160,7 +162,7 @@ export default function Sidebar() {
             )}
             {!sidebarCollapsed && (
               <button
-                onClick={() => signOut({ callbackUrl: '/admin/login' })}
+                onClick={logout}
                 className="p-1.5 text-zinc-400 hover:text-white"
                 title="Sign out"
               >

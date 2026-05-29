@@ -2,102 +2,119 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Search, Building2 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Building2, Pencil, Trash2, Plus } from 'lucide-react'
 import { cn } from '@/lib/admin/utils'
-import Pagination from '@/components/admin/shared/Pagination'
+import DataTable, { type Column } from '@/components/admin/shared/DataTable'
+import ClientFormDrawer from '@/components/admin/clients/ClientFormDrawer'
+import { useConfirm } from '@/hooks/useConfirm'
+import { kfToast } from '@/lib/admin/toast'
 import type { Client } from '@/lib/admin/db/schema'
 
-const PAGE_SIZE = 20
+const QUERY_KEY = 'admin-clients'
 
-export default function ClientsTable({ initialData }: { initialData: Client[] }) {
-  const [query, setQuery] = useState('')
-  const [page, setPage] = useState(0)
+export default function ClientsTable() {
+  const qc = useQueryClient()
+  const confirm = useConfirm()
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editing, setEditing] = useState<Client | null>(null)
 
-  const filtered = initialData.filter(
-    (c) =>
-      c.name.toLowerCase().includes(query.toLowerCase()) ||
-      c.email.toLowerCase().includes(query.toLowerCase()),
-  )
+  function refresh() {
+    qc.invalidateQueries({ queryKey: [QUERY_KEY] })
+  }
 
-  const paginated = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
+  function openNew() {
+    setEditing(null)
+    setDrawerOpen(true)
+  }
 
-  function handleSearch(v: string) { setQuery(v); setPage(0) }
+  function openEdit(c: Client) {
+    setEditing(c)
+    setDrawerOpen(true)
+  }
+
+  async function handleDelete(c: Client) {
+    const ok = await confirm({
+      title: `Delete ${c.name}?`,
+      description: 'The client will be marked inactive. Linked projects and invoices are preserved.',
+      variant: 'danger',
+      confirmLabel: 'Delete',
+    })
+    if (!ok) return
+    const res = await fetch(`/api/admin/clients/${c.id}`, { method: 'DELETE' })
+    if (!res.ok) {
+      kfToast.error('Delete failed')
+      return
+    }
+    kfToast.success('Client deleted')
+    refresh()
+  }
+
+  const columns: Column<Client>[] = [
+    {
+      key: 'name',
+      header: 'Client',
+      render: (c) => (
+        <div className="flex items-center gap-3">
+          {c.logoUrl ? (
+            <Image src={c.logoUrl} alt={c.name} width={32} height={32} className="rounded-md object-contain bg-zinc-100" />
+          ) : (
+            <div className="w-8 h-8 rounded-md bg-[var(--kf-green)]/10 flex items-center justify-center">
+              <Building2 className="w-4 h-4 text-[var(--kf-green)]" />
+            </div>
+          )}
+          <div>
+            <div className="font-medium text-[var(--kf-text)]">{c.name}</div>
+            {c.contactPerson && <div className="text-xs text-[var(--kf-text-muted)]">{c.contactPerson}</div>}
+          </div>
+        </div>
+      ),
+    },
+    { key: 'email', header: 'Email', render: (c) => <span className="text-[var(--kf-text-muted)]">{c.email}</span> },
+    { key: 'industry', header: 'Industry', render: (c) => <span className="text-[var(--kf-text-muted)]">{c.industry ?? '—'}</span> },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (c) => (
+        <span
+          className={cn(
+            'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium',
+            c.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-zinc-100 text-zinc-500',
+          )}
+        >
+          {c.isActive ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+  ]
 
   return (
-    <div className="kf-card rounded-2xl">
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
-          <input
-            value={query}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search clients…"
-            className="kf-input w-full pl-9"
-          />
-        </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[var(--kf-border)] text-xs text-[var(--kf-text-muted)] uppercase tracking-wide">
-              <th className="py-2 text-left font-medium">Client</th>
-              <th className="py-2 text-left font-medium">Email</th>
-              <th className="py-2 text-left font-medium">Industry</th>
-              <th className="py-2 text-left font-medium">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[var(--kf-border)]">
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={4} className="py-8 text-center text-[var(--kf-text-muted)] text-sm">
-                  No clients found.
-                </td>
-              </tr>
-            )}
-            {paginated.map((c) => (
-              <tr
-                key={c.id}
-                className="hover:bg-zinc-50 cursor-pointer transition"
-                onClick={() => (window.location.href = `/admin/clients/${c.id}`)}
-              >
-                <td className="py-3 pr-4">
-                  <div className="flex items-center gap-3">
-                    {c.logoUrl ? (
-                      <Image src={c.logoUrl} alt={c.name} width={32} height={32} className="rounded-md object-contain bg-zinc-100" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-md bg-[var(--kf-green)]/10 flex items-center justify-center">
-                        <Building2 className="w-4 h-4 text-[var(--kf-green)]" />
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-medium text-[var(--kf-text)]">{c.name}</div>
-                      {c.contactPerson && (
-                        <div className="text-xs text-[var(--kf-text-muted)]">{c.contactPerson}</div>
-                      )}
-                    </div>
-                  </div>
-                </td>
-                <td className="py-3 pr-4 text-[var(--kf-text-muted)]">{c.email}</td>
-                <td className="py-3 pr-4 text-[var(--kf-text-muted)]">{c.industry ?? '—'}</td>
-                <td className="py-3">
-                  <span
-                    className={cn(
-                      'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium',
-                      c.isActive
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-zinc-100 text-zinc-500',
-                    )}
-                  >
-                    {c.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
-    </div>
+    <>
+      <DataTable<Client>
+        queryKey={QUERY_KEY}
+        endpoint="/api/admin/clients"
+        rowsKey="clients"
+        getRowId={(c) => c.id}
+        columns={columns}
+        searchPlaceholder="Search clients…"
+        onRowClick={(c) => (window.location.href = `/admin/clients/${c.id}`)}
+        toolbar={
+          <button onClick={openNew} className="kf-btn-primary flex items-center gap-1.5 whitespace-nowrap">
+            <Plus className="w-4 h-4" /> New Client
+          </button>
+        }
+        actions={(c) => (
+          <>
+            <button onClick={() => openEdit(c)} aria-label="Edit" className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition">
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+            <button onClick={() => handleDelete(c)} aria-label="Delete" className="p-1.5 rounded-md text-zinc-500 hover:bg-red-50 hover:text-red-600 transition">
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </>
+        )}
+      />
+      <ClientFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} client={editing} onSaved={refresh} />
+    </>
   )
 }

@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { Loader2, RefreshCw } from 'lucide-react'
-import { toast } from 'sonner'
+import { kfToast as toast } from '@/lib/admin/toast'
 
 export default function TwoFactorForm() {
   const [digits, setDigits] = useState(['', '', '', '', '', ''])

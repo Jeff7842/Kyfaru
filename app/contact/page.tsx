@@ -45,15 +45,34 @@ export default function ContactPage() {
     message: '',
   })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   function handleChange(field: keyof ContactForm, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    console.log('[Contact form submission]', form)
-    setSubmitted(true)
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Something went wrong. Please try again.')
+        return
+      }
+      setSubmitted(true)
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -156,11 +175,16 @@ export default function ContactPage() {
                   />
                 </FormField>
 
+                {error && (
+                  <p className="text-sm text-red-400 font-inter -mt-2">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="group inline-flex items-center justify-center gap-3 gold-gradient-bg text-ky-base px-8 py-4 font-semibold text-sm tracking-[0.15em] font-display uppercase transition-transform hover:scale-[1.01] active:scale-[0.99] ky-rounded-sm mt-4"
+                  disabled={submitting}
+                  className="group inline-flex items-center justify-center gap-3 gold-gradient-bg text-ky-base px-8 py-4 font-semibold text-sm tracking-[0.15em] font-display uppercase transition-transform hover:scale-[1.01] active:scale-[0.99] ky-rounded-sm mt-4 disabled:opacity-60"
                 >
-                  <span>Send Message</span>
+                  <span>{submitting ? 'Sending…' : 'Send Message'}</span>
                   <Icon icon="heroicons:paper-airplane" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </form>

@@ -93,6 +93,8 @@ export default function QuotePage() {
     message: '',
   })
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
 
   const addFiles = useCallback((incoming: FileList | File[]) => {
     const list = Array.from(incoming)
@@ -119,11 +121,36 @@ export default function QuotePage() {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const validFiles = attachedFiles.filter((f) => !f.error)
-    console.log('[Quote form submission]', form, { files: validFiles.map((f) => f.file.name) })
-    setSubmitted(true)
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch('/api/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          company: form.company,
+          phone: `${form.phoneCountry} ${form.phoneNumber}`.trim(),
+          location: form.location,
+          service: SERVICE_OPTIONS.find((s) => s.value === form.service)?.label ?? form.service,
+          budget: form.budget,
+          message: form.message,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Something went wrong. Please try again.')
+        return
+      }
+      setSubmitted(true)
+    } catch {
+      setError('Network error. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -371,11 +398,16 @@ export default function QuotePage() {
                   />
                 </FormField>
 
+                {error && (
+                  <p className="text-sm text-red-400 font-inter -mt-2">{error}</p>
+                )}
+
                 <button
                   type="submit"
-                  className="group inline-flex items-center justify-center gap-3 gold-gradient-bg text-ky-base px-8 py-4 font-semibold text-sm tracking-[0.15em] font-display uppercase transition-transform hover:scale-[1.01] active:scale-[0.99] ky-rounded-sm mt-4"
+                  disabled={submitting}
+                  className="group inline-flex items-center justify-center gap-3 gold-gradient-bg text-ky-base px-8 py-4 font-semibold text-sm tracking-[0.15em] font-display uppercase transition-transform hover:scale-[1.01] active:scale-[0.99] ky-rounded-sm mt-4 disabled:opacity-60"
                 >
-                  <span>Request Quote</span>
+                  <span>{submitting ? 'Sending…' : 'Request Quote'}</span>
                   <Icon icon="heroicons:paper-airplane" className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </button>
               </form>
