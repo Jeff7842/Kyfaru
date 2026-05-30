@@ -240,8 +240,8 @@ export default function RefundPolicyPage() {
       />
       <LegalPageLayout
         sections={SECTIONS}
-        lastUpdated="1 January 2025"
-        version="1.0"
+        lastUpdated="12Th April 2026"
+        version="1.3"
         breadcrumb={[
           { label: 'Terms', href: '/terms' },
           { label: 'Refund & Payment Policy' },

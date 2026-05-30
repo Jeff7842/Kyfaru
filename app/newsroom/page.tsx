@@ -13,14 +13,14 @@ import { formatDate } from '@/lib/utils'
 
 const ANNOUNCEMENTS = [
   {
-    date: '2025-05-12',
+    date: '2025-11-12',
     tag: 'Product',
     title: 'Stackable Opens Free Starter Courses for Educators',
     body: 'After a six-month pilot with three Nairobi schools, Stackable — the digital learning arm of Kyfaru — is now open to all East African educators. Three free starter courses are live today: Classroom AI Basics, Digital Records 101, and Mobile-First Teaching.',
     link: '#',
   },
   {
-    date: '2025-04-04',
+    date: '2026-04-04',
     tag: 'Milestone',
     title: 'Mwamba AI Crosses 1,000,000 Inference Requests',
     body: 'The Mwamba AI engine — the intelligence layer embedded across every Kyfaru product — has now processed over one million inference requests across our deployed customer systems. Up-time remains at 99.97% since launch.',

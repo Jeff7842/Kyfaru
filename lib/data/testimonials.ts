@@ -11,10 +11,10 @@ export const testimonials: Testimonial[] = [
   {
     id: 'test-001',
     quote:
-      'Kyfaru built our school management system in under six weeks. From student enrollment to fee tracking, everything works exactly as we needed. The team was professional, always reachable, and delivered on every promise.',
+      'Kyfaru built our school management system in under 10 weeks. From student enrollment to fee tracking, everything works exactly as we needed. The team was professional, always reachable, and delivered on every promise.',
     author: 'Grace Wanjiku',
     role: 'Principal',
-    company: 'Nairobi Day School',
+    company: 'Private school, Nairobi',
   },
   {
     id: 'test-002',

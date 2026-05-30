@@ -109,7 +109,7 @@ export default function TermsPage() {
           {/* Info pills */}
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { icon: 'ph:calendar-blank-bold', text: 'Effective: 1 January 2025' },
+              { icon: 'ph:calendar-blank-bold', text: 'Effective: 12Th April 2026' },
               { icon: 'ph:map-pin-bold', text: 'Governing Law: Kenya' },
               { icon: 'ph:scales-bold', text: 'Arbitration: Nairobi' },
             ].map((pill) => (
@@ -207,7 +207,7 @@ export default function TermsPage() {
       <section className="bg-ky-base border-t border-ky-border py-6">
         <div className="max-w-6xl mx-auto px-6">
           <p className="text-[13px] text-center text-ky-faint font-inter">
-            These terms were last updated on <span className="text-ky-muted">1 January 2025</span>. Version{' '}
+            These terms were last updated on <span className="text-ky-muted">12Th April 2026</span>. Version{' '}
             <span className="text-ky-muted">1.0</span>. Kyfaru reserves the right to update these terms at
             any time with 30 days notice to active clients. Continued engagement after the notice period
             constitutes acceptance.

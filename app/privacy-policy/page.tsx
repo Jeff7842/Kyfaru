@@ -334,7 +334,7 @@ export default function PrivacyPolicyPage() {
       <LegalPageLayout
         sections={SECTIONS}
         lastUpdated="May 2026"
-        version="1.0"
+        version="2.0"
         breadcrumb={[
           { label: 'Terms', href: '/terms' },
           { label: 'Privacy Policy' },

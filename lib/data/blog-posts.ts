@@ -13,7 +13,7 @@ export const blogPosts: BlogPost[] = [
     title: 'How AI Is Quietly Transforming Kenyan Classrooms',
     excerpt:
       'Five practical ways AI is already helping teachers, students, and administrators across the country — beyond the hype.',
-    publishedAt: '2025-05-01',
+    publishedAt: '2026-05-01',
     category: 'AI & Tech',
     readTime: '6 min read',
   },

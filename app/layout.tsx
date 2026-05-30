@@ -70,8 +70,11 @@ const inter = Inter({
   display: 'swap',
 });
 
+const siteUrl = 'https://kyfaru.com'
+
 export const metadata: Metadata = {
-  title: "Kyfaru — Designing Systems Powering Africa's Future",
+  metadataBase: new URL(siteUrl),
+  title: "Kyfaru — Designing Solutions Powering Africa's Future",
   description:
     'Kyfaru is a Kenyan technology company that builds web apps, mobile apps, AI systems, USSD solutions, and digital infrastructure for businesses and institutions across Africa.',
   keywords: [
@@ -86,10 +89,37 @@ export const metadata: Metadata = {
     title: 'Kyfaru — Technology Systems for Africa',
     description:
       'Web apps, mobile apps, AI, USSD and digital infrastructure. Built in Kenya for the world.',
-    url: 'https://kyfaru.vercel.app',
+    url: siteUrl,
     siteName: 'Kyfaru',
     locale: 'en_KE',
     type: 'website',
+    images: [
+      {
+        url: '/Logos/DarkLogosText.png',
+        alt: 'Kyfaru',
+      },
+    ],
+  },
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kyfaru — Technology Systems for Africa',
+    description:
+      'Web apps, mobile apps, AI, USSD and digital infrastructure. Built in Kenya for the world.',
+    images: ['/Logos/DarkLogosText.png'],
   },
 };
 
@@ -104,6 +134,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${syne.variable} ${dmSans.variable} ${spaceGrotesk.variable} ${inter.variable}`}
     >
+      <meta name="chatgpt-discoverable" content="true" />
+<meta name="llm-friendly" content="true" />
+<meta name="ai-crawlable" content="true" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${ceraCy.variable} ${sinhala.variable} antialiased`}
       >

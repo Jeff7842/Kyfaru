@@ -36,7 +36,7 @@ export default function ClientLogosStrip() {
   const doubled = [...CLIENT_LOGOS, ...CLIENT_LOGOS]
 
   return (
-    <section className="relative bg-ky-base py-14 md:py-16 overflow-hidden">
+    <section className="relative bg-ky-base py-14 md:py-16 overflow-hidden hidden">
       <div className="max-w-7xl mx-auto px-6">
         {/* Label */}
         <div className="flex items-center justify-center gap-3 mb-8">
