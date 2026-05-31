@@ -30,10 +30,10 @@ type ContactForm = {
 }
 
 const CONTACT_INFO = [
-  { icon: 'heroicons:envelope', label: 'Email', value: 'hello@kyfaru.com', href: 'mailto:hello@kyfaru.com' },
+  { icon: 'heroicons:envelope', label: 'Email', value: 'hello@kyfaru.com', href: 'https://mail.google.com/mail/?view=cm&fs=1&to=hello@kyfaru.com&cc=info@kyfaru.com' },
   { icon: 'heroicons:phone', label: 'Phone', value: '+254 700 000 000', href: 'tel:+254700000000' },
   { icon: 'heroicons:map-pin', label: 'Location', value: 'Nairobi, Kenya', href: null },
-  { icon: 'heroicons:clock', label: 'Hours', value: 'Mon — Fri, 9am — 6pm EAT', href: null },
+  { icon: 'heroicons:clock', label: 'Hours', value: 'Mon - Fri, 9am — 5pm EAT', href: null },
 ]
 
 export default function ContactPage() {
@@ -204,7 +204,9 @@ export default function ContactPage() {
                     <div>
                       <div className="text-xs text-ky-faint tracking-wider font-display uppercase mb-1">{c.label}</div>
                       {c.href ? (
-                        <a href={c.href} className="text-sm text-ky-ivory hover:text-ky-gold transition-colors font-inter">{c.value}</a>
+                        <a href={c.href} className="text-sm text-ky-ivory hover:text-ky-gold transition-colors font-inter" target="_blank" rel="noopener noreferrer">
+                          {c.value}
+                        </a>
                       ) : (
                         <div className="text-sm text-ky-ivory font-inter">{c.value}</div>
                       )}

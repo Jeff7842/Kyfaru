@@ -68,7 +68,7 @@ export default async function CaseStudyDetailPage({ params }: PageProps) {
         <div className="max-w-4xl mx-auto px-6 flex flex-col gap-16">
           {/* Challenge */}
           <div>
-            <div className="text-xs tracking-[0.25em] uppercase text-ky-gold font-display mb-3">01 — The Challenge</div>
+            <div className="text-xs tracking-[0.25em] uppercase text-ky-gold font-display mb-3">01 - The Challenge</div>
             <h2 className="text-2xl md:text-3xl font-semibold text-ky-ivory font-display tracking-tight mb-5">
               The problem we were brought in to solve.
             </h2>
@@ -79,7 +79,7 @@ export default async function CaseStudyDetailPage({ params }: PageProps) {
 
           {/* Solution */}
           <div>
-            <div className="text-xs tracking-[0.25em] uppercase text-ky-gold font-display mb-3">02 — The Solution</div>
+            <div className="text-xs tracking-[0.25em] uppercase text-ky-gold font-display mb-3">02 - The Solution</div>
             <h2 className="text-2xl md:text-3xl font-semibold text-ky-ivory font-display tracking-tight mb-5">
               What Kyfaru designed, built, and shipped.
             </h2>
@@ -90,7 +90,7 @@ export default async function CaseStudyDetailPage({ params }: PageProps) {
 
           {/* Results */}
           <div>
-            <div className="text-xs tracking-[0.25em] uppercase text-ky-gold font-display mb-3">03 — The Results</div>
+            <div className="text-xs tracking-[0.25em] uppercase text-ky-gold font-display mb-3">03 - The Results</div>
             <h2 className="text-2xl md:text-3xl font-semibold text-ky-ivory font-display tracking-tight mb-8">
               Measurable outcomes after launch.
             </h2>

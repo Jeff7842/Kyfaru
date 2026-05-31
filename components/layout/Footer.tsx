@@ -79,7 +79,7 @@ export default function Footer() {
             </Link>
 
             <p className="text-sm text-ky-muted leading-relaxed font-inter max-w-xs mb-7">
-              The Kenyan technology company designing systems that power Africa&apos;s future — across web, mobile, AI, and infrastructure.
+              The Kenyan technology company designing systems that power Africa&apos;s future across web, mobile, AI, and infrastructure.
             </p>
 
             {/* Social icons */}

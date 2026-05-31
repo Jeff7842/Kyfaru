@@ -3,7 +3,7 @@ import AdminProviders from '@/components/admin/AdminProviders'
 
 export const metadata: Metadata = {
   title: 'Kyfaru Admin',
-  description: 'Kyfaru internal admin dashboard — authorised access only.',
+  description: 'Kyfaru internal admin dashboard - authorised access only.',
   robots: { index: false, follow: false },
 }
 

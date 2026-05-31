@@ -4,7 +4,7 @@ import { asc } from 'drizzle-orm'
 import CalendarApp from '@/components/admin/calendar/CalendarApp'
 import type { CalendarEventData } from '@/components/admin/calendar/EventModal'
 
-export const metadata = { title: 'Calendar — Kyfaru Admin' }
+export const metadata = { title: 'Calendar - Kyfaru Admin' }
 export const dynamic = 'force-dynamic'
 
 export default async function CalendarPage() {

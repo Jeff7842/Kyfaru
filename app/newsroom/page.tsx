@@ -13,17 +13,45 @@ import { formatDate } from '@/lib/utils'
 
 const ANNOUNCEMENTS = [
   {
-    date: '2025-11-12',
+    date: '2026-03-12',
     tag: 'Product',
-    title: 'Stackable Opens Free Starter Courses for Educators',
-    body: 'After a six-month pilot with three Nairobi schools, Stackable — the digital learning arm of Kyfaru — is now open to all East African educators. Three free starter courses are live today: Classroom AI Basics, Digital Records 101, and Mobile-First Teaching.',
+    title: 'Stackable Launches a Six-Month Pilot for Educators',
+    body: 'We are kicking off a six-month pilot with 10 schools across multiple regions. Stackable — the digital learning arm of Kyfaru — will roll out three starter courses during the pilot: Classroom AI Basics, Digital Records 101, and Mobile-First Teaching.',
     link: '#',
   },
   {
-    date: '2026-04-04',
-    tag: 'Milestone',
-    title: 'Mwamba AI Crosses 1,000,000 Inference Requests',
-    body: 'The Mwamba AI engine — the intelligence layer embedded across every Kyfaru product — has now processed over one million inference requests across our deployed customer systems. Up-time remains at 99.97% since launch.',
+    date: '2026-05-04',
+    tag: 'Technology',
+    title: 'Mwamba AI Pilot Crosses 100,000 Inference Requests',
+    body: 'The Mwamba AI engine — the intelligence layer being piloted across select Kyfaru products — has now processed over one hundred thousand inference requests in early customer trials. Initial stability has been strong as we prepare for a broader rollout.',
+    link: '#',
+  },
+  {
+    date: '2026-06-18',
+    tag: 'Research',
+    title: 'Kyfaru Opens an Applied Research Track',
+    body: 'We are starting a research track focused on practical AI and product learning, with short experiments across education, health, and SME workflows. Findings will feed into product decisions and public learning notes.',
+    link: '#',
+  },
+  {
+    date: '2026-07-22',
+    tag: 'Learning',
+    title: 'Learning Sprints Begin Across the Network',
+    body: 'Our teams and partner schools will run monthly learning sprints to test teaching workflows and digital record systems. We will publish a short learning memo after each sprint.',
+    link: '#',
+  },
+  {
+    date: '2026-08-14',
+    tag: 'Studio',
+    title: 'Baoba Ecosystem Enters the Build Phase',
+    body: 'We are setting up Baoba, a new ecosystem inside Kyfaru Studio inspired by the baobab tree. It will deliver UI/UX, graphic design, and animation solutions, with a planned launch in September 2026.',
+    link: '#',
+  },
+  {
+    date: '2026-09-03',
+    tag: 'Research',
+    title: 'Prototype Labs Start Exploring Creator Tools',
+    body: 'Prototype Labs is exploring creator tools for lesson design, brand kits, and motion assets. Early prototypes are in internal review as we gather feedback from pilot partners.',
     link: '#',
   },
 ]

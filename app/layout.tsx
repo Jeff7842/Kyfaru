@@ -86,7 +86,7 @@ export const metadata: Metadata = {
     'Kyfaru',
   ],
   openGraph: {
-    title: 'Kyfaru — Technology Systems for Africa',
+    title: 'Kyfaru - Technology Systems for Africa',
     description:
       'Web apps, mobile apps, AI, USSD and digital infrastructure. Built in Kenya for the world.',
     url: siteUrl,
@@ -116,7 +116,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Kyfaru — Technology Systems for Africa',
+    title: 'Kyfaru - Technology Systems for Africa',
     description:
       'Web apps, mobile apps, AI, USSD and digital infrastructure. Built in Kenya for the world.',
     images: ['/Logos/DarkLogosText.png'],

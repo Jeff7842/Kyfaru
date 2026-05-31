@@ -79,7 +79,7 @@ export default function AboutPage() {
                 Built locally, engineered globally
               </h3>
               <p className="text-ky-muted leading-relaxed">
-                We believe Africa does not need to import its digital future. It can — and should — be designed and built here, by people who understand the context.
+                We believe Africa does not need to import its digital future. It can and should be designed and built here, by people who understand the context.
               </p>
             </div>
 
@@ -90,7 +90,7 @@ export default function AboutPage() {
                 Small enough to care
               </h3>
               <p className="text-ky-muted leading-relaxed">
-                Skilled enough to build at any scale. Committed enough to be here for the long term — every detail matters to us.
+                Skilled enough to build at any scale. Committed enough to be here for the long term since every detail matters to us.
               </p>
             </div>
           </div>

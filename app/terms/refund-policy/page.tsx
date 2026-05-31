@@ -29,9 +29,9 @@ const SECTIONS: LegalSection[] = [
             </thead>
             <tbody className="divide-y divide-ky-border">
               {[
-                { milestone: 'Milestone 1 — Deposit', amount: '40% of total', when: 'On signing of Project Agreement' },
-                { milestone: 'Milestone 2 — Staging', amount: '30% of total', when: 'On Client approval of staging build' },
-                { milestone: 'Milestone 3 — Final', amount: '30% of total', when: 'Before go-live / final delivery' },
+                { milestone: 'Milestone 1 — Deposit', amount: '50% of total', when: 'On signing of Project Agreement' },
+                { milestone: 'Milestone 2 — Staging', amount: '25% of total', when: 'On Client approval of staging build' },
+                { milestone: 'Milestone 3 — Final', amount: '25% of total', when: 'Before go-live / final delivery' },
               ].map((row) => (
                 <tr key={row.milestone}>
                   <td className="py-3 pr-4 text-ky-ivory font-display font-semibold">{row.milestone}</td>
