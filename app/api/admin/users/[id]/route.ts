@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { users, auditLogs } from '@/lib/admin/db/schema'
+import { users } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { eq } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
@@ -54,7 +55,7 @@ export async function PATCH(
     .where(eq(users.id, id))
     .returning({ id: users.id, email: users.email, name: users.name, role: users.role })
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'user.update',
     entityType: 'user',
@@ -85,7 +86,7 @@ export async function DELETE(
 
   await db.update(users).set({ isActive: false, updatedAt: new Date() }).where(eq(users.id, id))
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'user.delete',
     entityType: 'user',

@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Save } from 'lucide-react'
 import Drawer from '@/components/admin/shared/Drawer'
 import { TextField, TextAreaField } from '@/components/admin/shared/Form/Field'
+import DatePicker from '@/components/admin/shared/DatePicker'
 import { kfToast } from '@/lib/admin/toast'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
 import type { Expense } from '@/lib/admin/db/schema'
 
 interface Props {
@@ -20,20 +22,24 @@ export default function ExpenseFormDrawer({ open, onClose, expense, onSaved }: P
   const isEdit = !!expense?.id
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
+  const snapshotRef = useRef('')
 
   useEffect(() => {
     if (open) {
-      setForm(
-        expense
-          ? {
-              category: expense.category ?? '', description: expense.description ?? '',
-              amount: expense.amount ?? '', paidAt: expense.paidAt ? new Date(expense.paidAt).toISOString().slice(0, 10) : '',
-              notes: expense.notes ?? '',
-            }
-          : EMPTY,
-      )
+      const next = expense
+        ? {
+            category: expense.category ?? '', description: expense.description ?? '',
+            amount: expense.amount ?? '', paidAt: expense.paidAt ? new Date(expense.paidAt).toISOString().slice(0, 10) : '',
+            notes: expense.notes ?? '',
+          }
+        : EMPTY
+      setForm(next)
+      snapshotRef.current = JSON.stringify(next)
     }
   }, [open, expense])
+
+  const isDirty = JSON.stringify(form) !== snapshotRef.current
+  const requestClose = useConfirmClose(isDirty, onClose)
 
   const set = (k: keyof typeof EMPTY, v: string) => setForm((p) => ({ ...p, [k]: v }))
 
@@ -64,11 +70,11 @@ export default function ExpenseFormDrawer({ open, onClose, expense, onSaved }: P
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
       title={isEdit ? 'Edit expense' : 'New expense'}
       footer={
         <>
-          <button onClick={onClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">Cancel</button>
+          <button onClick={requestClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">Cancel</button>
           <button onClick={handleSave} disabled={saving} className="flex-1 h-10 rounded-lg bg-[var(--kf-green)] hover:bg-[var(--kf-green-dark)] text-white text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving…' : 'Save'}
@@ -81,7 +87,7 @@ export default function ExpenseFormDrawer({ open, onClose, expense, onSaved }: P
         <TextField label="Description" required value={form.description} onChange={(e) => set('description', e.target.value)} />
         <div className="grid grid-cols-2 gap-3">
           <TextField label="Amount (KES)" type="number" required value={form.amount} onChange={(e) => set('amount', e.target.value)} />
-          <TextField label="Paid date" type="date" value={form.paidAt} onChange={(e) => set('paidAt', e.target.value)} />
+          <DatePicker label="Paid date" value={form.paidAt || null} onChange={(v) => set('paidAt', v ?? '')} />
         </div>
         <TextAreaField label="Notes" maxLength={300} value={form.notes} onChange={(e) => set('notes', e.target.value)} />
       </div>

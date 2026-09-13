@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { projects, clients, auditLogs } from '@/lib/admin/db/schema'
+import { projects, clients } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { and, count, desc, eq, ilike, or } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
@@ -79,7 +80,7 @@ export async function POST(req: NextRequest) {
     })
     .returning()
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'project.create',
     entityType: 'project',

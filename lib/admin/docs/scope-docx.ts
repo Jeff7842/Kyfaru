@@ -6,9 +6,10 @@
 // ============================================================
 
 import {
-  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+  Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell,
   AlignmentType, BorderStyle, WidthType, ShadingType, LevelFormat,
 } from 'docx'
+import { getKyfaruLogoBytes, LOGO_ASPECT, LINE_1_5X } from './docx-helpers'
 
 export interface ScopeDocxData {
   projectTitle?: string
@@ -19,6 +20,17 @@ export interface ScopeDocxData {
   startDate?: string
   goLive?: string
   objective?: string
+  // F/G/H/J/K - scaffolding for the project-requirements page (wired in a later phase);
+  // sensible generic defaults keep the SOW complete even before that data exists.
+  hostingProvider?: string
+  domainName?: string
+  hostingCost?: string
+  domainCost?: string
+  securityMeasures?: string[]
+  backupSchedule?: string
+  productUploadNotes?: string
+  additionalCharges?: { item: string; price: string }[]
+  seoItems?: string[]
 }
 
 const G = '27731E', GOLD = 'DEAE00', GOLDT = 'FFF9E6'
@@ -36,7 +48,7 @@ interface POpts { align?: (typeof AlignmentType)[keyof typeof AlignmentType]; b?
 const P = (text: string, opts: POpts = {}) =>
   new Paragraph({
     alignment: opts.align || AlignmentType.LEFT,
-    spacing: { before: opts.b ?? 40, after: opts.a ?? 80 },
+    spacing: { before: opts.b ?? 40, after: opts.a ?? 80, ...LINE_1_5X },
     indent: opts.indent ? { left: opts.indent } : undefined,
     border: opts.lborder ? LB(opts.lborder, opts.lbsize || 12) : undefined,
     children: [new TextRun({ text: String(text), font: 'Arial', size: opts.size || 18, bold: opts.bold || false, color: opts.color || DARK, italics: opts.italic || false })],
@@ -45,14 +57,14 @@ const P = (text: string, opts: POpts = {}) =>
 const bullet = (text: string, opts: { level?: number; size?: number; bold?: boolean; color?: string; italic?: boolean } = {}) =>
   new Paragraph({
     numbering: { reference: 'sow-bullets', level: opts.level || 0 },
-    spacing: { before: 30, after: 60 },
+    spacing: { before: 30, after: 60, ...LINE_1_5X },
     children: [new TextRun({ text: String(text), font: 'Arial', size: opts.size || 18, bold: opts.bold || false, color: opts.color || DARK, italics: opts.italic || false })],
   })
 
 const gap = (n = 120) => P('', { b: n, a: 0 })
 
 const SH = (text: string) =>
-  new Paragraph({ spacing: { before: 280, after: 100 }, border: LB(G, 16), children: [new TextRun({ text, font: 'Arial', size: 24, bold: true, color: DARK })] })
+  new Paragraph({ keepNext: true, spacing: { before: 280, after: 100, ...LINE_1_5X }, border: LB(G, 16), children: [new TextRun({ text, font: 'Arial', size: 24, bold: true, color: DARK })] })
 
 const sh2 = (text: string, color = DARK) => P(text, { bold: true, b: 160, a: 60, size: 20, color })
 
@@ -83,8 +95,8 @@ const infoBox = (heading: string, lines: string[], fill = GL, borderColor = G) =
       shading: { fill, type: ShadingType.CLEAR },
       margins: { top: 100, bottom: 100, left: 160, right: 120 },
       children: [
-        new Paragraph({ spacing: { before: 0, after: 50 }, children: [new TextRun({ text: heading, font: 'Arial', size: 19, bold: true, color: borderColor })] }),
-        ...lines.map((l) => new Paragraph({ spacing: { before: 0, after: 40 }, children: [new TextRun({ text: l, font: 'Arial', size: 17, color: DARK })] })),
+        new Paragraph({ spacing: { before: 0, after: 50, ...LINE_1_5X }, children: [new TextRun({ text: heading, font: 'Arial', size: 19, bold: true, color: borderColor })] }),
+        ...lines.map((l) => new Paragraph({ spacing: { before: 0, after: 40, ...LINE_1_5X }, children: [new TextRun({ text: l, font: 'Arial', size: 17, color: DARK })] })),
       ],
     })] })],
   })
@@ -99,6 +111,9 @@ export async function buildScopeDocx(data: ScopeDocxData = {}): Promise<Buffer> 
   const goLive = data.goLive ?? '29th June 2026'
   const objective = data.objective ??
     'Design, develop, test, and deploy a fully functional e-commerce website. The system will enable customers to browse, add to cart, pay via M-Pesa or card, and receive confirmations automatically.'
+  const logoBytes = await getKyfaruLogoBytes()
+  const logoWidth = 180
+  const logoHeight = Math.round(logoWidth / LOGO_ASPECT)
 
   const doc = new Document({
     numbering: {
@@ -119,8 +134,10 @@ export async function buildScopeDocx(data: ScopeDocxData = {}): Promise<Buffer> 
           width: { size: 9906, type: WidthType.DXA }, columnWidths: [5000, 4906],
           rows: [Row(
             new TableCell({ width: { size: 5000, type: WidthType.DXA }, borders: NB, margins: { top: 0, bottom: 0, left: 0, right: 0 }, children: [
-              new Paragraph({ spacing: { before: 0, after: 20 }, children: [new TextRun({ text: 'KYFARU', font: 'Arial', size: 44, bold: true, color: G })] }),
-              new Paragraph({ spacing: { before: 0, after: 0 }, children: [new TextRun({ text: 'TECH WITH HORNS', font: 'Arial', size: 14, color: GREY })] }),
+              new Paragraph({
+                spacing: { before: 0, after: 0 },
+                children: [new ImageRun({ type: 'png', data: logoBytes, transformation: { width: logoWidth, height: logoHeight } })],
+              }),
             ] }),
             new TableCell({ width: { size: 4906, type: WidthType.DXA }, borders: NB, margins: { top: 0, bottom: 0, left: 0, right: 0 }, children: [
               new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 0, after: 20 }, children: [new TextRun({ text: 'SCOPE OF WORK', font: 'Arial', size: 28, bold: true, color: DARK })] }),
@@ -240,6 +257,38 @@ export async function buildScopeDocx(data: ScopeDocxData = {}): Promise<Buffer> 
         ], GOLDT, GOLD),
         gap(100),
 
+        // F: HOSTING, DOMAIN, AND RECURRING THIRD-PARTY COSTS
+        SH('F.  HOSTING, DOMAIN, AND RECURRING THIRD-PARTY COSTS'),
+        P('The following are pass-through costs billed at cost or invoiced separately - they are not part of the one-time project fee.'),
+        gap(60),
+        new Table({
+          width: { size: 9906, type: WidthType.DXA }, columnWidths: [2400, 4106, 3400],
+          rows: [
+            Row(hCell('Item', 2400), hCell('Provider / Detail', 4106), hCell('Recurring Cost', 3400)),
+            Row(lCell('Hosting', 2400), dCell(data.hostingProvider ?? 'Vercel (or client-approved alternative)', 4106), dCell(data.hostingCost ?? 'Billed at cost - typically KES 0-3,000/month depending on traffic', 3400, { color: GREY })),
+            Row(lCell('Domain', 2400), dCell(data.domainName ?? 'To be confirmed with Client', 4106), dCell(data.domainCost ?? 'KES 1,500-3,000/year depending on TLD', 3400, { color: GREY })),
+          ],
+        }),
+        gap(100),
+
+        // G: SECURITY AND BACKUP SYSTEMS
+        SH('G.  SECURITY AND BACKUP SYSTEMS'),
+        ...(data.securityMeasures ?? [
+          'SSL/HTTPS enforced across the entire site',
+          'Authentication with rate limiting on login and sensitive endpoints',
+          'Input validation and sanitisation on every form and API route',
+          'Automated daily database backups with 30-day retention',
+          'Dependency and security updates applied during the support/retainer period',
+        ]).map((m) => bullet(m)),
+        gap(60),
+        P(data.backupSchedule ?? "Daily automated database backups retained for 30 days; file storage redundancy across the hosting provider's infrastructure."),
+        gap(100),
+
+        // H: PRODUCT UPLOAD SPECIFICATIONS
+        SH('H.  PRODUCT UPLOAD SPECIFICATIONS'),
+        P(data.productUploadNotes ?? 'Products are added and managed through the admin dashboard, either individually or via bulk CSV import. Each product record supports a title, description, price, stock quantity, category, and multiple images. Recommended product images are square, at least 1000x1000px, in JPG or PNG format, under 2MB each, on a plain or on-brand background.'),
+        gap(100),
+
         // I: MONTHLY RETAINER excerpt + exclusions list
         SH('I.  MONTHLY SUPPORT RETAINER — KES 6,000/MONTH'),
         P('Begins 30 days after the system goes live. Includes security updates, bug fixes for Kyfaru code, one minor feature per month, performance monitoring, monthly reports, renewal reminders, backup verification, and support during business hours.'),
@@ -252,6 +301,35 @@ export async function buildScopeDocx(data: ScopeDocxData = {}): Promise<Buffer> 
           'Product photography, videography, or copywriting',
           'Native mobile app (iOS/Android) or USSD integration',
         ], REDT, RED),
+        gap(100),
+
+        // J: ADDITIONAL CHARGES - GENERAL SCHEDULE
+        SH('J.  ADDITIONAL CHARGES — GENERAL SCHEDULE'),
+        new Table({
+          width: { size: 9906, type: WidthType.DXA }, columnWidths: [6906, 3000],
+          rows: [
+            Row(hCell('Item', 6906), hCell('Price', 3000)),
+            ...(data.additionalCharges ?? [
+              { item: 'Additional product upload / data-entry service', price: 'Quoted per request' },
+              { item: 'Extra design revision round beyond what was agreed', price: 'Quoted per request' },
+              { item: 'Rush delivery on a compressed timeline', price: 'Quoted per request' },
+              { item: 'Custom report or data export not in the original scope', price: 'Quoted per request' },
+            ]).map((row) => Row(dCell(row.item, 6906), dCell(row.price, 3000, { align: AlignmentType.CENTER, color: GREY }))),
+          ],
+        }),
+        gap(100),
+
+        // K: SEO BASICS INCLUDED IN THIS SCOPE
+        SH('K.  SEO BASICS INCLUDED IN THIS SCOPE'),
+        ...(data.seoItems ?? [
+          'Meta titles and descriptions for every page',
+          'Clean, semantic HTML structure',
+          'sitemap.xml and robots.txt',
+          'Structured data (JSON-LD) for products',
+          'Descriptive image alt text',
+          'Mobile-first responsive design',
+          'Page-speed optimisation basics (image compression, lazy loading)',
+        ]).map((m) => bullet(m)),
         gap(100),
 
         // L: EXCLUSIONS

@@ -7,6 +7,7 @@
 import {
   pgTable,
   pgEnum,
+  pgSequence,
   text,
   timestamp,
   boolean,
@@ -219,6 +220,10 @@ export const clients = pgTable(
 // PROJECTS
 // ────────────────────────────────────────────────────────────
 
+// Backs the shared Agreement/SOW document code (KY-<Mon><NNNN>) — nextval() is
+// atomic under concurrency with no locking needed, unlike a hand-rolled counter row.
+export const documentCodeSeq = pgSequence('document_code_seq', { startWith: 1 })
+
 export const projects = pgTable(
   'projects',
   {
@@ -238,6 +243,7 @@ export const projects = pgTable(
     supportExpiryDate: timestamp('support_expiry_date'),
     quotedAmount: decimal('quoted_amount', { precision: 12, scale: 2 }),
     currency: text('currency').notNull().default('KES'),
+    documentCode: text('document_code').unique(), // shared Agreement/SOW code, e.g. KY-SE0023 - distinct from projectCode (internal search/report identifier, set at creation)
     scopeDocument: jsonb('scope_document'),
     techStack: text('tech_stack').array(),
     stack: jsonb('stack'), // structured [{ name, category, custom }]
@@ -451,6 +457,8 @@ export const auditLogs = pgTable(
     after: jsonb('after'),
     ipAddress: text('ip_address'),
     userAgent: text('user_agent'),
+    icon: text('icon'), // lucide icon key for the activity stepper, e.g. 'plus', 'credit-card'
+    title: text('title'), // human-readable summary, e.g. "Invoice INV-0004 marked as paid"
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => [

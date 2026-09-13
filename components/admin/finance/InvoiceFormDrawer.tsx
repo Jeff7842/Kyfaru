@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Save, Plus, Trash2 } from 'lucide-react'
 import Drawer from '@/components/admin/shared/Drawer'
 import { TextField, TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
+import DatePicker from '@/components/admin/shared/DatePicker'
 import { kfToast } from '@/lib/admin/toast'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
 import type { Invoice, Project, Client } from '@/lib/admin/db/schema'
 
 type ProjectRow = Project & { client: Client | null }
@@ -41,6 +43,7 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState<LineItem[]>([blankItem()])
   const [saving, setSaving] = useState(false)
+  const snapshotRef = useRef('')
 
   const { data: projData } = useQuery({
     queryKey: ['project-options'],
@@ -56,15 +59,28 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
 
   useEffect(() => {
     if (open) {
-      setProjectId(invoice?.projectId ?? '')
-      setStatus(invoice?.status ?? 'draft')
-      setDueDate(invoice?.dueDate ? new Date(invoice.dueDate).toISOString().slice(0, 10) : '')
-      setVatAmount(invoice?.vatAmount ?? '0')
-      setNotes(invoice?.notes ?? '')
+      const nextProjectId = invoice?.projectId ?? ''
+      const nextStatus = invoice?.status ?? 'draft'
+      const nextDueDate = invoice?.dueDate ? new Date(invoice.dueDate).toISOString().slice(0, 10) : ''
+      const nextVat = invoice?.vatAmount ?? '0'
+      const nextNotes = invoice?.notes ?? ''
       const li = (invoice?.lineItems as LineItem[] | undefined) ?? null
-      setItems(li && li.length ? li : [blankItem()])
+      const nextItems = li && li.length ? li : [blankItem()]
+      setProjectId(nextProjectId)
+      setStatus(nextStatus)
+      setDueDate(nextDueDate)
+      setVatAmount(nextVat)
+      setNotes(nextNotes)
+      setItems(nextItems)
+      snapshotRef.current = JSON.stringify({
+        projectId: nextProjectId, status: nextStatus, dueDate: nextDueDate,
+        vatAmount: nextVat, notes: nextNotes, items: nextItems,
+      })
     }
   }, [open, invoice])
+
+  const isDirty = JSON.stringify({ projectId, status, dueDate, vatAmount, notes, items }) !== snapshotRef.current
+  const requestClose = useConfirmClose(isDirty, onClose)
 
   const subtotal = useMemo(
     () => items.reduce((sum, it) => sum + (Number(it.quantity) || 0) * (Number(it.price) || 0), 0),
@@ -94,6 +110,7 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
         lineItems: items.filter((it) => it.product.trim()),
         notes,
         ...(status !== 'draft' ? { issuedAt: new Date().toISOString() } : {}),
+        ...(status === 'paid' && !invoice?.paidAt ? { paidAt: new Date().toISOString() } : {}),
       }
       const url = isEdit ? `/api/admin/invoices/${invoice!.id}` : '/api/admin/invoices'
       const res = await fetch(url, {
@@ -116,13 +133,13 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
       width="max-w-2xl"
       title={isEdit ? `Edit ${invoice?.invoiceNumber}` : 'New invoice'}
       description={isEdit ? undefined : 'Invoice number is generated automatically.'}
       footer={
         <>
-          <button onClick={onClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">Cancel</button>
+          <button onClick={requestClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">Cancel</button>
           <button onClick={handleSave} disabled={saving} className="flex-1 h-10 rounded-lg bg-[var(--kf-green)] hover:bg-[var(--kf-green-dark)] text-white text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving…' : 'Save'}
@@ -134,7 +151,7 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
         <SelectField label="Project" required value={projectId} onChange={setProjectId} options={projectOptions} placeholder="Select a project…" />
         <div className="grid grid-cols-2 gap-3">
           <SelectField label="Status" value={status} onChange={setStatus} options={STATUS} />
-          <TextField label="Due date" type="date" required value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          <DatePicker label="Due date" required value={dueDate || null} onChange={(v) => setDueDate(v ?? '')} />
         </div>
 
         <div>

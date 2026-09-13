@@ -1,4 +1,5 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { PDFDocument, rgb } from 'pdf-lib'
+import fontkit from '@pdf-lib/fontkit'
 import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
@@ -12,29 +13,43 @@ export interface InvoiceLineItem {
 export interface InvoiceDocData {
   invoiceNumber: string // e.g. "KY-00021"
   date: string // formatted, e.g. "28th May 2026"
+  paid?: boolean
   paymentName?: string
   paymentAccount?: string
   paymentBank?: string
+  paymentMpesa?: string // optional 3rd payment line, e.g. "Mpesa +254705256443"
   clientName?: string
   items: InvoiceLineItem[]
   discount?: string
   taxes?: string
   total: string
-  phone?: string
-  email?: string
 }
 
-const TEMPLATE = path.join(process.cwd(), 'public', 'templates', 'invoice-template.png')
+// The blank artwork - swap target for the old pre-filled template that baked a
+// fake sample invoice into the pixels (the actual cause of the reported overlap).
+const TEMPLATE = path.join(process.cwd(), 'public', 'invoice', 'Invoice Template.png')
+
+// Built as plain strings (not require.resolve/import) so Next.js's bundler
+// doesn't try to trace and bundle the .woff files as a module dependency.
+const fontsourceFile = (pkg: string, file: string) =>
+  path.join(process.cwd(), 'node_modules', '@fontsource', pkg, 'files', file)
+const ROBOTO_REGULAR = fontsourceFile('roboto', 'roboto-latin-400-normal.woff')
+const ROBOTO_BOLD = fontsourceFile('roboto', 'roboto-latin-700-normal.woff')
+const ROBOTO_MONO_REGULAR = fontsourceFile('roboto-mono', 'roboto-mono-latin-400-normal.woff')
+const ROBOTO_MONO_BOLD = fontsourceFile('roboto-mono', 'roboto-mono-latin-700-normal.woff')
 
 // Fractional coordinates (x, y as fraction of page width/height, y measured from TOP).
-// Calibrated against the 2552×3579 invoice artwork; tweak here if alignment drifts.
+// Calibrated against public/invoice/Invoice Template.png (2552×3579); no external
+// provenance doc exists - recalibrate by eye against that PNG if it changes.
 const C = {
-  paymentName: { x: 0.13, yTop: 0.188 },
-  paymentAccount: { x: 0.38, yTop: 0.188 },
-  paymentBank: { x: 0.38, yTop: 0.205 },
-  invoiceNumber: { x: 0.285, yTop: 0.275 },
-  date: { x: 0.285, yTop: 0.318 },
-  rows: { firstYTop: 0.418, pitch: 0.0505, max: 5 },
+  paymentName: { x: 0.13, yTop: 0.199 },
+  paymentAccount: { x: 0.38, yTop: 0.199 },
+  paymentBank: { x: 0.38, yTop: 0.201 },
+  paymentMpesa: { x: 0.38, yTop: 0.240 }, // optional 3rd line - drawn only if provided
+  invoiceNumber: { x: 0.285, yTop: 0.299 },
+  paidStamp: { x: 0.62, yTop: 0.215 },
+  date: { x: 0.285, yTop: 0.331 },
+  rows: { firstYTop: 0.435, pitch: 0.040, max: 5 },
   col: { product: 0.13, price: 0.46, quantity: 0.62, total: 0.8 },
   clientName: { x: 0.13, yTop: 0.672 },
   summary: {
@@ -44,26 +59,44 @@ const C = {
     taxesYTop: 0.7,
     totalYTop: 0.731,
   },
-  phone: { x: 0.22, yTop: 0.918 },
-  email: { x: 0.22, yTop: 0.935 },
 }
 
-/** Builds the branded invoice PDF by overlaying data on the Illustrator artwork. */
+const W = 595.28
+const H = 841.89
+
+/** Builds the branded invoice PDF by overlaying data on the Kyfaru artwork. */
 export async function buildInvoicePdf(data: InvoiceDocData): Promise<Uint8Array> {
-  const pngBytes = await readFile(TEMPLATE)
+  const [pngBytes, robotoBytes, robotoBoldBytes, monoBytes, monoBoldBytes] = await Promise.all([
+    readFile(TEMPLATE),
+    readFile(ROBOTO_REGULAR),
+    readFile(ROBOTO_BOLD),
+    readFile(ROBOTO_MONO_REGULAR),
+    readFile(ROBOTO_MONO_BOLD),
+  ])
+
   const pdf = await PDFDocument.create()
+  pdf.registerFontkit(fontkit)
   const png = await pdf.embedPng(pngBytes)
 
-  // A4 portrait, artwork drawn full-bleed.
-  const W = 595.28
-  const H = 841.89
-  const page = pdf.addPage([W, H])
-  page.drawImage(png, { x: 0, y: 0, width: W, height: H })
+  // Every dynamic value on the invoice is Roboto Mono per the confirmed font-role
+  // rule - no static label is ever drawn here, they all live in the template artwork.
+  const mono = await pdf.embedFont(monoBytes, { subset: true })
+  const monoBold = await pdf.embedFont(monoBoldBytes, { subset: true })
+  // Roboto is reserved for any label text drawn on a continuation page, matching
+  // the artwork's own convention for static headings.
+  const roboto = await pdf.embedFont(robotoBytes, { subset: true })
+  const robotoBold = await pdf.embedFont(robotoBoldBytes, { subset: true })
 
-  const font = await pdf.embedFont(StandardFonts.Courier)
-  const fontBold = await pdf.embedFont(StandardFonts.CourierBold)
   const ink = rgb(0.18, 0.2, 0.21)
   const green = rgb(0.06, 0.45, 0.32)
+
+  function newPage() {
+    const page = pdf.addPage([W, H])
+    page.drawImage(png, { x: 0, y: 0, width: W, height: H })
+    return page
+  }
+
+  let page = newPage()
 
   const at = (xFrac: number, yTopFrac: number) => ({ x: xFrac * W, y: H - yTopFrac * H })
 
@@ -71,41 +104,52 @@ export async function buildInvoicePdf(data: InvoiceDocData): Promise<Uint8Array>
     text: string,
     xFrac: number,
     yTopFrac: number,
-    opts: { size?: number; bold?: boolean; color?: typeof ink } = {},
+    opts: { size?: number; bold?: boolean; color?: typeof ink; font?: 'mono' | 'roboto' } = {},
   ) => {
     const { x, y } = at(xFrac, yTopFrac)
-    page.drawText(text ?? '', {
-      x,
-      y,
-      size: opts.size ?? 8,
-      font: opts.bold ? fontBold : font,
-      color: opts.color ?? ink,
-    })
+    const font = opts.font === 'roboto' ? (opts.bold ? robotoBold : roboto) : opts.bold ? monoBold : mono
+    page.drawText(text ?? '', { x, y, size: opts.size ?? 8, font, color: opts.color ?? ink })
   }
 
   draw(data.paymentName ?? '', C.paymentName.x, C.paymentName.yTop)
   draw(data.paymentAccount ?? '', C.paymentAccount.x, C.paymentAccount.yTop)
   draw(data.paymentBank ?? '', C.paymentBank.x, C.paymentBank.yTop)
+  if (data.paymentMpesa) draw(data.paymentMpesa, C.paymentMpesa.x, C.paymentMpesa.yTop)
 
   draw(data.invoiceNumber, C.invoiceNumber.x, C.invoiceNumber.yTop, { size: 13, bold: true })
   draw(data.date, C.date.x, C.date.yTop, { size: 8 })
+  if (data.paid) draw('PAID', C.paidStamp.x, C.paidStamp.yTop, { size: 12, bold: true, color: green })
 
-  data.items.slice(0, C.rows.max).forEach((item, i) => {
-    const yTop = C.rows.firstYTop + i * C.rows.pitch
+  const items = data.items
+  let row = 0
+  let pageFirstYTop = C.rows.firstYTop
+  for (const item of items) {
+    if (row === C.rows.max) {
+      // Continuation page: repeat the column headers (Roboto, matching the
+      // artwork's own label convention) below the logo lockup (which occupies
+      // roughly x:[0.62,0.91], y:[0.045,0.10] on this artwork).
+      page = newPage()
+      const contHeaderYTop = 0.14
+      draw('Product', C.col.product, contHeaderYTop, { font: 'roboto', bold: true })
+      draw('Price', C.col.price, contHeaderYTop, { font: 'roboto', bold: true })
+      draw('Quantity', C.col.quantity, contHeaderYTop, { font: 'roboto', bold: true })
+      draw('Total', C.col.total, contHeaderYTop, { font: 'roboto', bold: true })
+      pageFirstYTop = contHeaderYTop + C.rows.pitch
+      row = 0
+    }
+    const yTop = pageFirstYTop + row * C.rows.pitch
     draw(item.product, C.col.product, yTop)
     draw(item.price, C.col.price, yTop)
     draw(String(item.quantity), C.col.quantity, yTop)
     draw(item.total, C.col.total, yTop)
-  })
+    row += 1
+  }
 
   if (data.clientName) draw(data.clientName, C.clientName.x, C.clientName.yTop, { color: green, bold: true })
 
-  draw(data.discount ?? 'KES0.00', C.summary.valueX, C.summary.discountYTop)
-  draw(data.taxes ?? 'KES0.00', C.summary.valueX, C.summary.taxesYTop)
+  draw(data.discount ?? 'KES 0.00', C.summary.valueX, C.summary.discountYTop)
+  draw(data.taxes ?? 'KES 0.00', C.summary.valueX, C.summary.taxesYTop)
   draw(data.total, C.summary.valueX, C.summary.totalYTop, { bold: true, color: green })
-
-  if (data.phone) draw(data.phone, C.phone.x, C.phone.yTop, { size: 7 })
-  if (data.email) draw(data.email, C.email.x, C.email.yTop, { size: 7 })
 
   return pdf.save()
 }

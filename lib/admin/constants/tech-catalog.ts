@@ -9,12 +9,18 @@ export type StackCategory =
   | 'devops'
   | 'mobile'
   | 'ai'
+  | 'payment'
+  | 'communication'
+  | 'design'
+  | 'monitoring'
+  | 'caching'
   | 'other'
 
 export interface StackItem {
   name: string
   category: StackCategory
   custom?: boolean
+  note?: string // what this specific tool is used for on this project
 }
 
 export const CATEGORY_LABEL: Record<StackCategory, string> = {
@@ -26,6 +32,11 @@ export const CATEGORY_LABEL: Record<StackCategory, string> = {
   devops: 'DevOps',
   mobile: 'Mobile',
   ai: 'AI / ML',
+  payment: 'Payment',
+  communication: 'Communication',
+  design: 'Design',
+  monitoring: 'Monitoring',
+  caching: 'Caching',
   other: 'Other',
 }
 
@@ -39,6 +50,11 @@ export const CATEGORY_COLOR: Record<StackCategory, string> = {
   devops: 'bg-violet-50 border-violet-300 text-violet-700',
   mobile: 'bg-cyan-50 border-cyan-300 text-cyan-700',
   ai: 'bg-fuchsia-50 border-fuchsia-300 text-fuchsia-700',
+  payment: 'bg-lime-50 border-lime-300 text-lime-700',
+  communication: 'bg-sky-50 border-sky-300 text-sky-700',
+  design: 'bg-pink-50 border-pink-300 text-pink-700',
+  monitoring: 'bg-indigo-50 border-indigo-300 text-indigo-700',
+  caching: 'bg-teal-50 border-teal-300 text-teal-700',
   other: 'bg-zinc-100 border-zinc-300 text-zinc-700',
 }
 
@@ -92,11 +108,32 @@ export const TECH_CATALOG: StackItem[] = [
   { name: 'OpenAI', category: 'ai' },
   { name: 'Anthropic Claude', category: 'ai' },
   { name: 'LangChain', category: 'ai' },
-  // payments / integrations (other)
-  { name: 'M-Pesa Daraja', category: 'other' },
-  { name: 'Stripe', category: 'other' },
-  { name: 'Resend', category: 'other' },
-  { name: 'Twilio', category: 'other' },
+  // payment
+  { name: 'M-Pesa Daraja', category: 'payment' },
+  { name: 'Stripe', category: 'payment' },
+  { name: 'PayPal', category: 'payment' },
+  { name: 'PayHero', category: 'payment' },
+  { name: 'Flutterwave', category: 'payment' },
+  // communication
+  { name: 'Resend', category: 'communication' },
+  { name: 'Twilio', category: 'communication' },
+  { name: 'SendGrid', category: 'communication' },
+  { name: 'WhatsApp Business API', category: 'communication' },
+  // design
+  { name: 'Figma', category: 'design' },
+  { name: 'Adobe XD', category: 'design' },
+  { name: 'Canva', category: 'design' },
+  // monitoring
+  { name: 'Sentry', category: 'monitoring' },
+  { name: 'PostHog', category: 'monitoring' },
+  { name: 'LogRocket', category: 'monitoring' },
+  { name: 'Datadog', category: 'monitoring' },
+  // caching - Redis itself stays catalogued under `database` above (that's its
+  // canonical entry; duplicating it here would flip categoryFor('Redis') to
+  // 'caching' via the lookup map and silently re-categorize it on every
+  // already-saved project that has Redis stored with category: 'database').
+  { name: 'Upstash Redis', category: 'caching' },
+  { name: 'Memcached', category: 'caching' },
 ]
 
 const LOOKUP = new Map(TECH_CATALOG.map((t) => [t.name.toLowerCase(), t]))

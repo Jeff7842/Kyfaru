@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { expenses, auditLogs } from '@/lib/admin/db/schema'
+import { expenses } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { eq } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
@@ -25,7 +26,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const [updated] = await db.update(expenses).set(updates).where(eq(expenses.id, id)).returning()
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'expense.update',
     entityType: 'expense',
@@ -47,7 +48,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   await db.delete(expenses).where(eq(expenses.id, id))
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'expense.delete',
     entityType: 'expense',

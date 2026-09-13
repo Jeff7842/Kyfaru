@@ -5,9 +5,10 @@
 // ============================================================
 
 import {
-  Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+  Document, Packer, Paragraph, TextRun, ImageRun, Table, TableRow, TableCell,
   AlignmentType, BorderStyle, WidthType, ShadingType, VerticalAlign,
 } from 'docx'
+import { getKyfaruLogoBytes, LOGO_ASPECT, LINE_1_5X } from './docx-helpers'
 
 export interface AgreementDocxData {
   ref?: string
@@ -43,7 +44,7 @@ type POptsAlign = (typeof AlignmentType)[keyof typeof AlignmentType]
 const para = (runs: TextRun[] | TextRun, opts: ParaOpts = {}) =>
   new Paragraph({
     alignment: opts.align ?? AlignmentType.LEFT,
-    spacing: { before: opts.before ?? 40, after: opts.after ?? 80 },
+    spacing: { before: opts.before ?? 40, after: opts.after ?? 80, ...LINE_1_5X },
     indent: opts.indent ? { left: opts.indent } : undefined,
     border: opts.lborder ? { left: { style: BorderStyle.SINGLE, size: 16, color: GREEN, space: 8 } } : undefined,
     children: Array.isArray(runs) ? runs : [runs],
@@ -75,7 +76,12 @@ const vCell = (text: string, width: number, opts: TrOpts & ParaOpts = {}) =>
 const nbCell = (paragraphs: Paragraph[], width: number) => cell(paragraphs, width, { borders: NO_BORDERS })
 
 const sectionHead = (text: string) =>
-  new Paragraph({ spacing: { before: 200, after: 80 }, border: { left: { style: BorderStyle.SINGLE, size: 16, color: GREEN, space: 8 } }, children: [tr(text, { bold: true, size: 22, color: DARK })] })
+  new Paragraph({
+    keepNext: true,
+    spacing: { before: 200, after: 80, ...LINE_1_5X },
+    border: { left: { style: BorderStyle.SINGLE, size: 16, color: GREEN, space: 8 } },
+    children: [tr(text, { bold: true, size: 24, color: DARK })],
+  })
 
 const SIG_COL = 4653
 const sigLineRow = () => new TableRow({ children: [
@@ -98,6 +104,9 @@ export async function buildAgreementDocx(data: AgreementDocxData = {}): Promise<
   const projectType = data.projectType ?? ''
   const startDate = data.startDate ?? ''
   const goLive = data.goLive ?? ''
+  const logoBytes = await getKyfaruLogoBytes()
+  const logoWidth = 180
+  const logoHeight = Math.round(logoWidth / LOGO_ASPECT)
 
   const doc = new Document({
     styles: { default: { document: { run: { font: 'Arial', size: 18, color: DARK } } } },
@@ -109,8 +118,10 @@ export async function buildAgreementDocx(data: AgreementDocxData = {}): Promise<
           width: { size: INNER_W, type: WidthType.DXA }, columnWidths: [4953, 4953],
           rows: [new TableRow({ children: [
             nbCell([
-              new Paragraph({ spacing: { before: 0, after: 20 }, children: [tr('KYFARU', { bold: true, size: 42, color: GREEN })] }),
-              p('TECH WITH HORNS', { size: 14, color: GREY, before: 0, after: 0 }),
+              new Paragraph({
+                spacing: { before: 0, after: 0 },
+                children: [new ImageRun({ type: 'png', data: logoBytes, transformation: { width: logoWidth, height: logoHeight } })],
+              }),
             ], 4953),
             nbCell([
               new Paragraph({ alignment: AlignmentType.RIGHT, spacing: { before: 0, after: 20 }, children: [tr('PROJECT AGREEMENT', { bold: true, size: 26, color: DARK })] }),

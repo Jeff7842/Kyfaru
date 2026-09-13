@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Save } from 'lucide-react'
 import Drawer from '@/components/admin/shared/Drawer'
 import { TextField, TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
@@ -8,6 +8,7 @@ import KyPhoneInput from '@/components/ui/KyPhoneInput'
 import { INDUSTRY_OPTIONS } from '@/lib/admin/constants/industries'
 import { useCountriesList, useStates } from '@/lib/hooks/useGeo'
 import { kfToast } from '@/lib/admin/toast'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
 import type { Client } from '@/lib/admin/db/schema'
 
 interface Props {
@@ -28,26 +29,30 @@ export default function ClientFormDrawer({ open, onClose, client, onSaved }: Pro
   const isEdit = !!client?.id
   const [form, setForm] = useState(EMPTY)
   const [saving, setSaving] = useState(false)
+  const snapshotRef = useRef('')
 
   const { data: countries = [] } = useCountriesList()
   const { data: states = [] } = useStates(form.country)
 
   useEffect(() => {
     if (open) {
-      setForm(
-        client
-          ? {
-              name: client.name ?? '', email: client.email ?? '',
-              contactPerson: client.contactPerson ?? '', industry: client.industry ?? '',
-              phoneCountry: 'KE', phoneNumber: client.phone ?? '',
-              whatsappNumber: client.whatsappNumber ?? '',
-              country: client.country ?? 'Kenya', county: client.county ?? '',
-              kraPin: client.kraPin ?? '', notes: client.notes ?? '',
-            }
-          : EMPTY,
-      )
+      const next = client
+        ? {
+            name: client.name ?? '', email: client.email ?? '',
+            contactPerson: client.contactPerson ?? '', industry: client.industry ?? '',
+            phoneCountry: 'KE', phoneNumber: client.phone ?? '',
+            whatsappNumber: client.whatsappNumber ?? '',
+            country: client.country ?? 'Kenya', county: client.county ?? '',
+            kraPin: client.kraPin ?? '', notes: client.notes ?? '',
+          }
+        : EMPTY
+      setForm(next)
+      snapshotRef.current = JSON.stringify(next)
     }
   }, [open, client])
+
+  const isDirty = JSON.stringify(form) !== snapshotRef.current
+  const requestClose = useConfirmClose(isDirty, onClose)
 
   function set<K extends keyof typeof EMPTY>(k: K, v: string) {
     setForm((p) => ({ ...p, [k]: v }))
@@ -88,12 +93,12 @@ export default function ClientFormDrawer({ open, onClose, client, onSaved }: Pro
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
       title={isEdit ? 'Edit client' : 'New client'}
       description={isEdit ? client?.name : 'Add a new client account.'}
       footer={
         <>
-          <button onClick={onClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">
+          <button onClick={requestClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">
             Cancel
           </button>
           <button onClick={handleSave} disabled={saving} className="flex-1 h-10 rounded-lg bg-[var(--kf-green)] hover:bg-[var(--kf-green-dark)] text-white text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-60">

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { invoices, auditLogs } from '@/lib/admin/db/schema'
+import { invoices } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { eq } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
@@ -28,13 +29,17 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const [updated] = await db.update(invoices).set(updates).where(eq(invoices.id, id)).returning()
 
-  await db.insert(auditLogs).values({
+  const justMarkedPaid = updates.status === 'paid' && existing.status !== 'paid'
+  await logAudit({
     userId: session.user.id as string,
     action: 'invoice.update',
     entityType: 'invoice',
     entityId: id,
     before: { status: existing.status, amount: existing.amount },
     after: updates,
+    ...(justMarkedPaid
+      ? { title: `Invoice ${existing.invoiceNumber} marked as paid`, icon: 'credit-card' }
+      : {}),
   })
 
   return NextResponse.json({ invoice: updated })
@@ -51,7 +56,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
   await db.update(invoices).set({ status: 'cancelled', updatedAt: new Date() }).where(eq(invoices.id, id))
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'invoice.delete',
     entityType: 'invoice',

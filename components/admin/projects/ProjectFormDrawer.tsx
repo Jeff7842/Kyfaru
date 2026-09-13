@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Loader2, Save } from 'lucide-react'
 import Drawer from '@/components/admin/shared/Drawer'
 import { TextField, TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
+import DatePicker from '@/components/admin/shared/DatePicker'
 import StackInput from '@/components/admin/shared/StackInput'
 import { categoryFor, type StackItem } from '@/lib/admin/constants/tech-catalog'
 import { kfToast } from '@/lib/admin/toast'
+import { useConfirmClose } from '@/hooks/useConfirmClose'
 import type { Project, Client } from '@/lib/admin/db/schema'
 
 interface Props {
@@ -44,6 +46,7 @@ export default function ProjectFormDrawer({ open, onClose, project, onSaved }: P
   const [form, setForm] = useState(EMPTY)
   const [stack, setStack] = useState<StackItem[]>([])
   const [saving, setSaving] = useState(false)
+  const snapshotRef = useRef('')
 
   const { data: clientsData } = useQuery({
     queryKey: ['client-options'],
@@ -57,27 +60,29 @@ export default function ProjectFormDrawer({ open, onClose, project, onSaved }: P
 
   useEffect(() => {
     if (open) {
-      setForm(
-        project
-          ? {
-              name: project.name ?? '', clientId: project.clientId ?? '',
-              status: project.status ?? 'lead', description: project.description ?? '',
-              startDate: toDateInput(project.startDate), expectedEndDate: toDateInput(project.expectedEndDate),
-              goLiveDate: toDateInput(project.goLiveDate),
-              quotedAmount: project.quotedAmount ?? '', githubRepoUrl: project.githubRepoUrl ?? '',
-              notes: project.notes ?? '',
-            }
-          : EMPTY,
-      )
+      const nextForm = project
+        ? {
+            name: project.name ?? '', clientId: project.clientId ?? '',
+            status: project.status ?? 'lead', description: project.description ?? '',
+            startDate: toDateInput(project.startDate), expectedEndDate: toDateInput(project.expectedEndDate),
+            goLiveDate: toDateInput(project.goLiveDate),
+            quotedAmount: project.quotedAmount ?? '', githubRepoUrl: project.githubRepoUrl ?? '',
+            notes: project.notes ?? '',
+          }
+        : EMPTY
       // Prefer structured stack; fall back to legacy techStack[] mapped to categories.
       const structured = project?.stack as StackItem[] | null | undefined
-      setStack(
-        structured && Array.isArray(structured) && structured.length
-          ? structured
-          : (project?.techStack ?? []).map((name) => ({ name, category: categoryFor(name) })),
-      )
+      const nextStack = structured && Array.isArray(structured) && structured.length
+        ? structured
+        : (project?.techStack ?? []).map((name) => ({ name, category: categoryFor(name) }))
+      setForm(nextForm)
+      setStack(nextStack)
+      snapshotRef.current = JSON.stringify({ form: nextForm, stack: nextStack })
     }
   }, [open, project])
+
+  const isDirty = JSON.stringify({ form, stack }) !== snapshotRef.current
+  const requestClose = useConfirmClose(isDirty, onClose)
 
   function set<K extends keyof typeof EMPTY>(k: K, v: string) {
     setForm((p) => ({ ...p, [k]: v }))
@@ -120,12 +125,12 @@ export default function ProjectFormDrawer({ open, onClose, project, onSaved }: P
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={requestClose}
       title={isEdit ? 'Edit project' : 'New project'}
       description={isEdit ? project?.name : 'Create a new client project.'}
       footer={
         <>
-          <button onClick={onClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">
+          <button onClick={requestClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">
             Cancel
           </button>
           <button onClick={handleSave} disabled={saving} className="flex-1 h-10 rounded-lg bg-[var(--kf-green)] hover:bg-[var(--kf-green-dark)] text-white text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-60">
@@ -141,9 +146,9 @@ export default function ProjectFormDrawer({ open, onClose, project, onSaved }: P
         <SelectField label="Status" value={form.status} onChange={(v) => set('status', v)} options={STATUS_OPTIONS} />
         <TextAreaField label="Description" maxLength={1000} value={form.description} onChange={(e) => set('description', e.target.value)} />
         <div className="grid grid-cols-3 gap-3">
-          <TextField label="Start" type="date" value={form.startDate} onChange={(e) => set('startDate', e.target.value)} />
-          <TextField label="Expected end" type="date" value={form.expectedEndDate} onChange={(e) => set('expectedEndDate', e.target.value)} />
-          <TextField label="Go-live" type="date" value={form.goLiveDate} onChange={(e) => set('goLiveDate', e.target.value)} />
+          <DatePicker label="Start" value={form.startDate || null} onChange={(v) => set('startDate', v ?? '')} />
+          <DatePicker label="Expected end" value={form.expectedEndDate || null} onChange={(v) => set('expectedEndDate', v ?? '')} />
+          <DatePicker label="Go-live" value={form.goLiveDate || null} onChange={(v) => set('goLiveDate', v ?? '')} />
         </div>
         <TextField label="Quoted amount (KES)" type="number" value={form.quotedAmount} onChange={(e) => set('quotedAmount', e.target.value)} placeholder="500000" />
         <StackInput label="Tech stack" value={stack} onChange={setStack} />

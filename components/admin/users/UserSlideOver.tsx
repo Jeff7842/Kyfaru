@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { X, Upload, Save, Loader2, Calendar } from 'lucide-react'
+import { X, Upload, Save, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { kfToast } from '@/lib/admin/toast'
 import { ROLE_LABELS } from '@/lib/admin/permissions'
 import type { Role } from '@/lib/admin/permissions'
 import type { User } from '@/lib/admin/db/schema'
+import DatePicker from '@/components/admin/shared/DatePicker'
 
 type SafeUser = Omit<User, 'passwordHash' | 'githubAccessToken'>
 
@@ -235,29 +236,16 @@ export default function UserSlideOver({ user, open, onClose, onSaved }: UserSlid
               ))}
             </select>
             {accessType === 'custom' && (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs text-zinc-500 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> From
-                  </label>
-                  <input
-                    type="date"
-                    value={accessFrom}
-                    onChange={(e) => setAccessFrom(e.target.value)}
-                    className="w-full h-9 px-2 rounded-lg border border-zinc-200 bg-white text-sm text-zinc-900 focus:outline-none focus:border-[var(--kf-green)]"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-zinc-500 mb-1 flex items-center gap-1">
-                    <Calendar className="w-3 h-3" /> Until
-                  </label>
-                  <input
-                    type="date"
-                    value={accessUntil}
-                    onChange={(e) => setAccessUntil(e.target.value)}
-                    className="w-full h-9 px-2 rounded-lg border border-zinc-200 bg-white text-sm text-zinc-900 focus:outline-none focus:border-[var(--kf-green)]"
-                  />
-                </div>
+              <div className="mt-2">
+                <DatePicker
+                  mode="range"
+                  value={{ from: accessFrom || null, to: accessUntil || null }}
+                  onChange={(v) => {
+                    setAccessFrom(v.from ?? '')
+                    setAccessUntil(v.to ?? '')
+                  }}
+                  placeholder="From - Until"
+                />
               </div>
             )}
           </FieldGroup>

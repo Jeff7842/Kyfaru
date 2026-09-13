@@ -36,6 +36,20 @@
       "when": 1780052307671,
       "tag": "0004_nosy_lockjaw",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789243472595,
+      "tag": "0005_past_colonel_america",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1789313592187,
+      "tag": "0006_funny_vulture",
+      "breakpoints": true
     }
   ]
 }

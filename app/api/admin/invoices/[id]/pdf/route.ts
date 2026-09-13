@@ -45,6 +45,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const pdf = await buildInvoicePdf({
     invoiceNumber: invoice.invoiceNumber,
     date: fmtDate(invoice.issuedAt ?? invoice.createdAt),
+    paid: invoice.status === 'paid',
     paymentName: 'Jefferson Kimotho',
     paymentAccount: '0040 7386 0361 50',
     paymentBank: 'I&M Bank',
@@ -52,8 +53,6 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     items,
     taxes: money(Number(invoice.vatAmount) || 0),
     total: money(Number(invoice.amount) || 0),
-    phone: '+254700550302',
-    email: 'info@kyfaru.com',
   })
 
   return new NextResponse(Buffer.from(pdf), {

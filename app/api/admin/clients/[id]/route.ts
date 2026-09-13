@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { clients, auditLogs } from '@/lib/admin/db/schema'
+import { clients } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { eq } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
@@ -26,7 +27,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const [updated] = await db.update(clients).set(updates).where(eq(clients.id, id)).returning()
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'client.update',
     entityType: 'client',
@@ -50,7 +51,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   // Soft delete to preserve referential history (projects/invoices reference clients).
   await db.update(clients).set({ isActive: false, updatedAt: new Date() }).where(eq(clients.id, id))
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'client.delete',
     entityType: 'client',

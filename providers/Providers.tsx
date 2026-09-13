@@ -10,6 +10,7 @@ import { ThemeProvider } from 'next-themes'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import LenisProvider from './LenisProvider'
+import PostHogProvider from './PostHogProvider'
 
 interface ProvidersProps {
   /** The app's child components to wrap */
@@ -43,7 +44,9 @@ export default function Providers({ children }: ProvidersProps) {
         enableSystem={true}
         disableTransitionOnChange
       >
-        <LenisProvider>{children}</LenisProvider>
+        <LenisProvider>
+          <PostHogProvider>{children}</PostHogProvider>
+        </LenisProvider>
       </ThemeProvider>
     </QueryClientProvider>
   )

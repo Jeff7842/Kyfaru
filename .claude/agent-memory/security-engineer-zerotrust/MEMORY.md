@@ -1,0 +1,5 @@
+- [Kyfaru admin authz model](kyfaru_admin_authz_model.md) — role hierarchy, "logged-in-only" gaps on doc/invoice PDF routes, notifications page shows all rows to all users.
+- [Kyfaru document generation conventions](kyfaru_docgen_conventions.md) — where invoice/agreement/scope doc code lives, confirmed-safe patterns, in-memory-only generation.
+- [Kyfaru notifications shared-state bug](kyfaru_notifications_shared_state.md) — mark-all-read/unread-count now touch userId-NULL broadcast rows, no per-user read receipts.
+- [Kyfaru preline UI library](kyfaru_preline_ui_library.md) — supply chain clean; Select plugin's toggle uses innerHTML on title data (option list itself is safe) — sanitize before wiring real data in.
+- [Kyfaru vanilla-calendar-pro](kyfaru_vanilla_calendar_pro.md) — DatePicker engine: supply chain clean, sanitizerHTML defaults to no-op (unused sinks today), range mode auto-sorts so UI can't submit reversed dates.

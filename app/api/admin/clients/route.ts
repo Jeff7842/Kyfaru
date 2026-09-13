@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { clients, auditLogs } from '@/lib/admin/db/schema'
+import { clients } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { paginatedSearch } from '@/lib/admin/db/query-helpers'
 import { desc } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
@@ -55,7 +56,7 @@ export async function POST(req: NextRequest) {
     })
     .returning()
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'client.create',
     entityType: 'client',

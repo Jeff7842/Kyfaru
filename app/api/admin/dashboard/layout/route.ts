@@ -9,9 +9,16 @@ export const dynamic = 'force-dynamic'
 export const DEFAULT_LAYOUT = [
   { widgetId: 'kpis', size: 'full' },
   { widgetId: 'revenue', size: 'full' },
+  { widgetId: 'profit-loss', size: 'full' },
+  { widgetId: 'expenses-trend', size: 'half' },
+  { widgetId: 'new-customers', size: 'half' },
   { widgetId: 'invoices-status', size: 'half' },
   { widgetId: 'expenses-category', size: 'half' },
   { widgetId: 'projects-status', size: 'half' },
+  { widgetId: 'active-members', size: 'half' },
+  { widgetId: 'upcoming-deadlines', size: 'half' },
+  { widgetId: 'website-notifications', size: 'half' },
+  { widgetId: 'analytics-clicks', size: 'half' },
 ]
 
 export async function GET() {

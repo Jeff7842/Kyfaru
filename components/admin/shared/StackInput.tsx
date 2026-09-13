@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Search, X, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -23,38 +24,74 @@ interface Props {
 /**
  * Searchable tech-stack tag input. Pick from the catalog or add a custom tool
  * (double-space commits) and assign its category. Chips are grouped & coloured
- * by category, each with an inline remove button.
+ * by category, each with an inline remove button and an optional purpose note.
  */
 export default function StackInput({ label, value, onChange }: Props) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [customCat, setCustomCat] = useState<StackCategory>('other')
+  const [dropdownRect, setDropdownRect] = useState<{ left: number; top: number; width: number } | null>(null)
   const ref = useRef<HTMLDivElement>(null)
+  const inputWrapRef = useRef<HTMLDivElement>(null)
+  // The dropdown itself lives in a portal under <body>, not under `ref` - a
+  // mousedown-outside check against `ref` alone would see every click inside
+  // the dropdown as "outside" and close it before its own onClick can fire
+  // (mousedown fires before click). Check both refs.
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Node
+      if (ref.current?.contains(target)) return
+      if (dropdownRef.current?.contains(target)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', onClick)
     return () => document.removeEventListener('mousedown', onClick)
   }, [])
 
-  const selectedNames = new Set(value.map((v) => v.name.toLowerCase()))
+  // The dropdown used to be `absolute` inside this component's own subtree,
+  // which gets clipped by the drawer's `overflow-y-auto` content area whenever
+  // StackInput sits low in the form. Portal it to <body> and position it via
+  // the trigger's own bounding rect instead, so it's never clipped.
+  useEffect(() => {
+    if (!open) return
+    function updateRect() {
+      const el = inputWrapRef.current
+      if (!el) return
+      const rect = el.getBoundingClientRect()
+      setDropdownRect({ left: rect.left, top: rect.bottom + 4, width: rect.width })
+    }
+    updateRect()
+    window.addEventListener('scroll', updateRect, true)
+    window.addEventListener('resize', updateRect)
+    return () => {
+      window.removeEventListener('scroll', updateRect, true)
+      window.removeEventListener('resize', updateRect)
+    }
+  }, [open])
+
   const q = query.trim().toLowerCase()
-  const matches = useMemo(
-    () => TECH_CATALOG.filter((t) => !selectedNames.has(t.name.toLowerCase()) && t.name.toLowerCase().includes(q)),
-    [q, value],
-  )
-  const exactExists = TECH_CATALOG.some((t) => t.name.toLowerCase() === q) || selectedNames.has(q)
+  const { matches, exactExists } = useMemo(() => {
+    const selectedNames = new Set(value.map((v) => v.name.toLowerCase()))
+    return {
+      matches: TECH_CATALOG.filter((t) => !selectedNames.has(t.name.toLowerCase()) && t.name.toLowerCase().includes(q)),
+      exactExists: TECH_CATALOG.some((t) => t.name.toLowerCase() === q) || selectedNames.has(q),
+    }
+  }, [q, value])
 
   function add(item: StackItem) {
-    if (selectedNames.has(item.name.toLowerCase())) return
+    if (value.some((v) => v.name.toLowerCase() === item.name.toLowerCase())) return
     onChange([...value, item])
     setQuery('')
   }
 
   function remove(name: string) {
     onChange(value.filter((v) => v.name !== name))
+  }
+
+  function setNote(name: string, note: string) {
+    onChange(value.map((v) => (v.name === name ? { ...v, note } : v)))
   }
 
   function addCustom() {
@@ -77,7 +114,7 @@ export default function StackInput({ label, value, onChange }: Props) {
     }
   }
 
-  // group selected chips by category for the "defined area" layout
+  // group selected chips by area for the "defined area" layout
   const grouped = useMemo(() => {
     const m = new Map<StackCategory, StackItem[]>()
     for (const it of value) {
@@ -92,35 +129,45 @@ export default function StackInput({ label, value, onChange }: Props) {
     <div className="flex flex-col gap-1.5" ref={ref}>
       {label && <label className="text-xs font-medium text-zinc-700">{label}</label>}
 
-      {/* selected chips grouped by area */}
+      {/* selected items grouped by area, each with an inline purpose note */}
       {value.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {CATEGORIES.filter((c) => grouped.has(c)).map((cat) => (
-            <div key={cat} className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-wide text-zinc-400 w-16 shrink-0">{CATEGORY_LABEL[cat]}</span>
-              {grouped.get(cat)!.map((it) => (
-                <span
-                  key={it.name}
-                  className={cn('inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-md border text-xs font-medium', CATEGORY_COLOR[cat])}
-                >
-                  {it.name}
-                  <button
-                    type="button"
-                    onClick={() => remove(it.name)}
-                    aria-label={`Remove ${it.name}`}
-                    className="rounded-full p-0.5 hover:bg-black/10 transition"
+            <div key={cat}>
+              <span className="text-[10px] uppercase tracking-wide text-zinc-400">{CATEGORY_LABEL[cat]}</span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {grouped.get(cat)!.map((it) => (
+                  <div
+                    key={it.name}
+                    className={cn('flex flex-col gap-1 pl-2 pr-1 py-1 rounded-md border text-xs font-medium min-w-[140px]', CATEGORY_COLOR[cat])}
                   >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
+                    <div className="flex items-center justify-between gap-1">
+                      <span>{it.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => remove(it.name)}
+                        aria-label={`Remove ${it.name}`}
+                        className="rounded-full p-0.5 hover:bg-black/10 transition"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <input
+                      value={it.note ?? ''}
+                      onChange={(e) => setNote(it.name, e.target.value)}
+                      placeholder="Used for…"
+                      className="bg-white/60 border border-black/10 rounded px-1.5 py-0.5 text-[10px] font-normal text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:bg-white"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
       )}
 
       {/* search trigger + dropdown */}
-      <div className="relative">
+      <div className="relative" ref={inputWrapRef}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
         <input
           value={query}
@@ -131,8 +178,12 @@ export default function StackInput({ label, value, onChange }: Props) {
           className="kf-modal-input pl-9"
         />
 
-        {open && (
-          <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-64 overflow-y-auto">
+        {open && dropdownRect && createPortal(
+          <div
+            ref={dropdownRef}
+            className="fixed z-50 bg-white border border-zinc-200 rounded-xl shadow-lg max-h-64 overflow-y-auto"
+            style={{ left: dropdownRect.left, top: dropdownRect.top, width: dropdownRect.width }}
+          >
             {matches.map((t) => (
               <button
                 key={t.name}
@@ -177,7 +228,8 @@ export default function StackInput({ label, value, onChange }: Props) {
             {matches.length === 0 && !query.trim() && (
               <p className="px-3 py-4 text-center text-xs text-zinc-400">Type to search tools…</p>
             )}
-          </div>
+          </div>,
+          document.body,
         )}
       </div>
     </div>

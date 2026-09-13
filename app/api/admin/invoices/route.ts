@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { invoices, clients, auditLogs } from '@/lib/admin/db/schema'
+import { invoices, clients } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
+import { logAudit } from '@/lib/admin/audit'
 import { and, count, desc, eq, ilike, or } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
@@ -52,6 +53,10 @@ export async function POST(req: NextRequest) {
   if (!body.projectId || !body.clientId || !body.amount || !body.dueDate) {
     return NextResponse.json({ error: 'Project, client, amount and due date are required' }, { status: 400 })
   }
+  const paidAt = body.paidAt ? new Date(body.paidAt) : null
+  if (paidAt && Number.isNaN(paidAt.getTime())) {
+    return NextResponse.json({ error: 'Invalid paidAt date' }, { status: 400 })
+  }
 
   const [{ value: existingCount }] = await db.select({ value: count() }).from(invoices)
   const invoiceNumber = body.invoiceNumber?.trim() || `KY-${String((existingCount ?? 0) + 1).padStart(5, '0')}`
@@ -68,6 +73,7 @@ export async function POST(req: NextRequest) {
       vatAmount: body.vatAmount != null ? String(body.vatAmount) : '0',
       status: body.status ?? 'draft',
       issuedAt: body.issuedAt ? new Date(body.issuedAt) : null,
+      paidAt,
       dueDate: new Date(body.dueDate),
       lineItems: body.lineItems ?? [],
       notes: body.notes ?? null,
@@ -75,12 +81,13 @@ export async function POST(req: NextRequest) {
     })
     .returning()
 
-  await db.insert(auditLogs).values({
+  await logAudit({
     userId: session.user.id as string,
     action: 'invoice.create',
     entityType: 'invoice',
     entityId: invoice.id,
-    after: { invoiceNumber, amount: invoice.amount },
+    after: { invoiceNumber, amount: invoice.amount, status: invoice.status, paidAt: invoice.paidAt },
+    title: `Invoice ${invoiceNumber} created`,
   })
 
   return NextResponse.json({ invoice }, { status: 201 })
