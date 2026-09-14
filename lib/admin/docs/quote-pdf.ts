@@ -252,10 +252,10 @@ summaryRow(`Tax (${data.taxRate}%)`, money(tax), {
   const recurringMonthly = data.recurringMonthly ?? 0
   const recurringAnnual = data.recurringAnnual ?? 0
   if (depositOn || maintenanceOn || recurringMonthly > 0 || recurringAnnual > 0) {
-    y -= 28
+    y -= 35
     const boxTop = y
     text('PAYMENT SCHEDULE', MARGIN, y, { size: 8, bold: true, color: MUTED })
-    y -= 20
+    y -= 16
     if (depositOn) {
       const deposit = total * (depositPct / 100)
       text(`Deposit to begin work (${depositPct}%)`, MARGIN, y, { size: 9 })
