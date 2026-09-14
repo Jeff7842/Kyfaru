@@ -45,15 +45,15 @@ export interface QuoteDocData {
   notes?: string
 }
 
-// Built as plain strings (not require.resolve/import) so Next.js's bundler
-// doesn't try to trace and bundle the .woff files as a module dependency -
-// same reasoning as invoice-pdf.ts.
-const fontsourceFile = (pkg: string, file: string) =>
-  path.join(process.cwd(), 'node_modules', '@fontsource', pkg, 'files', file)
-const ROBOTO_REGULAR = fontsourceFile('roboto', 'roboto-latin-400-normal.woff')
-const ROBOTO_BOLD = fontsourceFile('roboto', 'roboto-latin-700-normal.woff')
-const MONO_REGULAR = fontsourceFile('roboto-mono', 'roboto-mono-latin-400-normal.woff')
-const MONO_BOLD = fontsourceFile('roboto-mono', 'roboto-mono-latin-700-normal.woff')
+// Copied into public/fonts/ from @fontsource rather than read from
+// node_modules at runtime - see invoice-pdf.ts's fontFile() for why
+// (Vercel's serverless file-tracing didn't reliably survive pnpm's
+// symlinked node_modules layout, public/ sidesteps the problem entirely).
+const fontFile = (file: string) => path.join(process.cwd(), 'public', 'fonts', file)
+const ROBOTO_REGULAR = fontFile('roboto-latin-400-normal.woff')
+const ROBOTO_BOLD = fontFile('roboto-latin-700-normal.woff')
+const MONO_REGULAR = fontFile('roboto-mono-latin-400-normal.woff')
+const MONO_BOLD = fontFile('roboto-mono-latin-700-normal.woff')
 
 const W = 595.28
 const H = 841.89
