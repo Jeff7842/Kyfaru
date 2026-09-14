@@ -14,17 +14,6 @@ const nextConfig: NextConfig = {
   },
   // These do native/Node work and must not be bundled by turbopack.
   serverExternalPackages: ['@react-pdf/renderer', 'pdf-lib'],
-  // invoice-pdf.ts/quote-pdf.ts read @fontsource .woff files off disk at
-  // runtime via a plain path.join() string (deliberately not a static
-  // import/require, which would break turbopack bundling of the .woff as a
-  // JS module) - but that same dynamic-path trick means Vercel's output file
-  // tracer can't see the dependency either, so it gets dropped from the
-  // deployed serverless function and every PDF export 500s with ENOENT.
-  // Explicitly re-include them here.
-  outputFileTracingIncludes: {
-    '/api/admin/invoices/[id]/pdf': ['./node_modules/@fontsource/**/*.woff'],
-    '/api/admin/projects/[id]/quote/pdf': ['./node_modules/@fontsource/**/*.woff'],
-  },
   compiler: {
     styledComponents: true,
   },

@@ -29,14 +29,16 @@ export interface InvoiceDocData {
 // fake sample invoice into the pixels (the actual cause of the reported overlap).
 const TEMPLATE = path.join(process.cwd(), 'public', 'invoice', 'Invoice Template.png')
 
-// Built as plain strings (not require.resolve/import) so Next.js's bundler
-// doesn't try to trace and bundle the .woff files as a module dependency.
-const fontsourceFile = (pkg: string, file: string) =>
-  path.join(process.cwd(), 'node_modules', '@fontsource', pkg, 'files', file)
-const ROBOTO_REGULAR = fontsourceFile('roboto', 'roboto-latin-400-normal.woff')
-const ROBOTO_BOLD = fontsourceFile('roboto', 'roboto-latin-700-normal.woff')
-const ROBOTO_MONO_REGULAR = fontsourceFile('roboto-mono', 'roboto-mono-latin-400-normal.woff')
-const ROBOTO_MONO_BOLD = fontsourceFile('roboto-mono', 'roboto-mono-latin-700-normal.woff')
+// Copied into public/fonts/ from @fontsource rather than read from
+// node_modules at runtime - node_modules is subject to Vercel's serverless
+// build file-tracing (which, even with outputFileTracingIncludes pointed at
+// it, didn't reliably survive pnpm's symlinked node_modules layout there),
+// while public/ is always deployed in full, no tracing involved.
+const fontFile = (file: string) => path.join(process.cwd(), 'public', 'fonts', file)
+const ROBOTO_REGULAR = fontFile('roboto-latin-400-normal.woff')
+const ROBOTO_BOLD = fontFile('roboto-latin-700-normal.woff')
+const ROBOTO_MONO_REGULAR = fontFile('roboto-mono-latin-400-normal.woff')
+const ROBOTO_MONO_BOLD = fontFile('roboto-mono-latin-700-normal.woff')
 
 // Fractional coordinates (x, y as fraction of page width/height, y measured from TOP).
 // Calibrated against public/invoice/Invoice Template.png (2552×3579); no external
