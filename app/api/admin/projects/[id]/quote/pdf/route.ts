@@ -48,6 +48,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     projectTitle: project.name,
     items,
     taxRate: Number(quote.taxRate ?? 0),
+    discount: Number(quote.discount ?? 0),
     currency: quote.currency,
     accentColor: quote.accentColor,
     contactEmail: quote.contactEmail,

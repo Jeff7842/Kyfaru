@@ -8,7 +8,7 @@ import { db } from '@/lib/admin/db'
 import { projects } from '@/lib/admin/db/schema'
 import { eq } from 'drizzle-orm'
 
-const MONTH_CODE = [
+export const MONTH_CODE = [
   'JA', 'FE', 'MR', 'AP', 'MY', 'JN',
   'JL', 'AU', 'SE', 'OC', 'NO', 'DE',
 ] as const

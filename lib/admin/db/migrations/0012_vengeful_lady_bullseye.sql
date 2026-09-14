@@ -1,0 +1,1 @@
+ALTER TABLE "quotes" ADD COLUMN "discount" numeric(12, 2) DEFAULT '0';

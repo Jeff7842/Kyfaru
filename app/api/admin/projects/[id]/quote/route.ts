@@ -7,6 +7,7 @@ import { logAudit } from '@/lib/admin/audit'
 import { priceFor, type StackItem } from '@/lib/admin/constants/tech-catalog'
 import type { ProjectRequirementsDoc } from '@/lib/admin/types/project-requirements'
 import type { ToolPricing } from '@/lib/admin/docs/quote-pdf'
+import { MONTH_CODE } from '@/lib/admin/docs/document-code'
 import { eq, sql } from 'drizzle-orm'
 
 const DEFAULT_TERMS = 'This quote is valid for 14 days from the quote date. First 30 days of maintenance after delivery are free; a monthly maintenance fee applies thereafter. Any feature requested outside this scope requires a separate quote and invoice.'
@@ -21,8 +22,13 @@ export async function getOrCreateQuote(project: ProjectForQuote, userId: string)
   const existing = await db.query.quotes.findFirst({ where: eq(quotes.projectId, project.id) })
   if (existing) return existing
 
+  // Same "month + running total" concept as the Agreement/SOW document code
+  // (getOrCreateDocumentCode) - QT- prefix keeps it visually distinct from
+  // that KY-<Mon><NNNN> scheme (quotes have their own atomic sequence, a
+  // running count of quotations specifically, never reset monthly).
   const seq = await db.execute<{ n: number }>(sql`SELECT nextval('quote_number_seq') AS n`)
-  const quoteNumber = `QT-${String(seq.rows[0].n).padStart(5, '0')}`
+  const monthCode = MONTH_CODE[new Date().getMonth()]
+  const quoteNumber = `QT-${monthCode}${String(seq.rows[0].n).padStart(4, '0')}`
   const dueDate = new Date(Date.now() + 14 * 86400000)
 
   // Seed the editable per-quote pricing table from the project's selected
@@ -72,7 +78,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const body = await req.json()
   const editable = [
-    'lineItems', 'taxRate', 'currency', 'accentColor', 'toolsPricing', 'termsAndConditions', 'notes', 'status',
+    'lineItems', 'taxRate', 'discount', 'currency', 'accentColor', 'toolsPricing', 'termsAndConditions', 'notes', 'status',
     'includeToolsRow', 'depositEnabled', 'depositPercent', 'maintenanceEnabled', 'maintenanceFee',
     'contactEmail', 'contactPhone',
   ]

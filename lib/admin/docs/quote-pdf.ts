@@ -27,6 +27,7 @@ export interface QuoteDocData {
   projectTitle?: string
   items: QuoteLineItem[]
   taxRate: number // percentage, e.g. 16
+  discount?: number // flat amount, applied after subtotal and before tax - omitted from the PDF entirely when 0
   currency: string // e.g. "KES", "USD"
   accentColor?: string // key into lib/admin/constants/quote-colors.ts
   contactEmail?: string
@@ -174,14 +175,19 @@ export async function buildQuotePdf(data: QuoteDocData): Promise<Uint8Array> {
   }
 
   y -= 12
-  const tax = subtotal * (data.taxRate / 100)
-  const total = subtotal + tax
+  const discount = data.discount ?? 0
+  const afterDiscount = subtotal - discount
+  const tax = afterDiscount * (data.taxRate / 100)
+  const total = afterDiscount + tax
   const summaryRow = (label: string, value: string, opts: { bold?: boolean; size?: number } = {}) => {
     text(label, col.price, y, { size: opts.size ?? 9.5, bold: opts.bold, color: opts.bold ? INK : MUTED })
     text(value, col.amount, y, { size: opts.size ?? 9.5, mono: true, bold: opts.bold, align: 'right' })
     y -= 18
   }
   summaryRow('Subtotal', money(subtotal))
+  // Omitted entirely when zero, per the quote's own convention of not
+  // showing a line that has nothing to say.
+  if (discount > 0) summaryRow('Discount', `-${money(discount)}`)
   summaryRow(`Tax (${data.taxRate}%)`, money(tax))
   page.drawLine({ start: { x: col.price, y: y + 10 }, end: { x: W - MARGIN, y: y + 10 }, thickness: 1, color: INK })
   summaryRow('Total', money(total), { bold: true, size: 12 })

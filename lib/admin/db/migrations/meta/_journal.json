@@ -85,6 +85,13 @@
       "when": 1789395252624,
       "tag": "0011_overjoyed_monster_badoon",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789397942600,
+      "tag": "0012_vengeful_lady_bullseye",
+      "breakpoints": true
     }
   ]
 }

@@ -369,6 +369,7 @@ export const quotes = pgTable(
     dueDate: timestamp('due_date'),
     lineItems: jsonb('line_items').notNull(), // [{ description, quantity, unitPrice }]
     taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0'), // percentage, e.g. 16.00
+    discount: decimal('discount', { precision: 12, scale: 2 }).default('0'), // flat amount, applied before tax
     currency: text('currency').notNull().default('KES'),
     accentColor: text('accent_color').notNull().default('green'), // green|blue|orange|purple - see ACCENT_COLORS
     contactEmail: text('contact_email').notNull().default('info@kyfaru.com'),

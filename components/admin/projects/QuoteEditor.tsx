@@ -8,6 +8,7 @@ import {
   DollarSign, Percent, Mail, Phone, Calendar,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { formatQuoteMoney, CURRENCY_OPTIONS } from '@/lib/admin/constants/currencies'
 import { ACCENT_COLOR_OPTIONS, accentHex } from '@/lib/admin/constants/quote-colors'
 import HeroSection from '@/components/admin/layout/HeroSection'
@@ -63,6 +64,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
 
   const [items, setItems] = useState<LineItem[]>([blankItem()])
   const [taxRate, setTaxRate] = useState('0')
+  const [discount, setDiscount] = useState('0')
   const [currency, setCurrency] = useState('KES')
   const [accentColor, setAccentColor] = useState('green')
   const [contactEmail, setContactEmail] = useState('info@kyfaru.com')
@@ -93,7 +95,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     const nextItems = li.length ? li : [blankItem()]
     const nextDue = quote.dueDate ? new Date(quote.dueDate).toISOString().slice(0, 10) : null
     const next = {
-      items: nextItems, taxRate: quote.taxRate ?? '0', currency: quote.currency ?? 'KES',
+      items: nextItems, taxRate: quote.taxRate ?? '0', discount: quote.discount ?? '0', currency: quote.currency ?? 'KES',
       accentColor: quote.accentColor ?? 'green', contactEmail: quote.contactEmail ?? 'info@kyfaru.com',
       contactPhone: quote.contactPhone ?? '+254 705 256 443', dueDate: nextDue,
       terms: quote.termsAndConditions ?? '', notes: quote.notes ?? '', status: quote.status,
@@ -104,6 +106,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     }
     setItems(next.items)
     setTaxRate(next.taxRate)
+    setDiscount(next.discount)
     setCurrency(next.currency)
     setAccentColor(next.accentColor)
     setContactEmail(next.contactEmail)
@@ -127,7 +130,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
   // since JSON.stringify key order affects the dirty-check string comparison.
   function buildSnapshot() {
     return JSON.stringify({
-      items, taxRate, currency, accentColor, contactEmail, contactPhone, dueDate, terms, notes, status,
+      items, taxRate, discount, currency, accentColor, contactEmail, contactPhone, dueDate, terms, notes, status,
       toolsPricing, includeToolsRow, depositEnabled, depositPercent, maintenanceEnabled, maintenanceFee,
     })
   }
@@ -153,8 +156,10 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
 
   const itemsSubtotal = items.reduce((s, it) => s + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0), 0)
   const subtotal = itemsSubtotal + oneTimeToolsTotal
-  const tax = subtotal * (Number(taxRate) / 100 || 0)
-  const total = subtotal + tax
+  const discountAmount = Number(discount) || 0
+  const afterDiscount = subtotal - discountAmount
+  const tax = afterDiscount * (Number(taxRate) / 100 || 0)
+  const total = afterDiscount + tax
   const depositAmount = total * (Number(depositPercent) / 100 || 0)
   const balanceAmount = total - depositAmount
   const accent = accentHex(accentColor)
@@ -177,6 +182,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
         body: JSON.stringify({
           lineItems: items.filter((it) => it.description.trim()),
           taxRate,
+          discount,
           currency,
           accentColor,
           contactEmail,
@@ -289,7 +295,6 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
               style={{ width: 100, height: 100 / LOGO_ASPECT }}
               className="mb-1.5"
             />
-            <p className="text-[10px] tracking-widest uppercase text-black">Tech with horns</p>
             <div className="mt-2 space-y-1 max-w-[200px]">
               <ContactField icon={Mail} type="email" value={contactEmail} onChange={setContactEmail} placeholder="info@kyfaru.com" />
               <ContactField icon={Phone} type="text" value={contactPhone} onChange={setContactPhone} placeholder="+254 705 256 443" />
@@ -458,6 +463,18 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
             <div className="flex justify-between text-black">
               <span>Subtotal</span>
               <span>{money(subtotal)}</span>
+            </div>
+            {/* Editable on screen regardless of value; omitted from print/PDF
+                entirely when zero - a discount line with nothing to say. */}
+            <div className={cn('flex justify-between items-center text-black', discountAmount === 0 && 'print:hidden')}>
+              <span className="flex items-center gap-1.5">
+                Discount
+                <span className="print:hidden relative inline-flex items-center">
+                  <DollarSign className="absolute left-1 w-2.5 h-2.5 text-zinc-400 pointer-events-none" />
+                  <input type="number" min={0} value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-20 pl-4 bg-transparent border-0 border-b border-zinc-200 text-xs" />
+                </span>
+              </span>
+              <span>-{money(discountAmount)}</span>
             </div>
             <div className="flex justify-between items-center text-black">
               <span className="flex items-center gap-1.5">
