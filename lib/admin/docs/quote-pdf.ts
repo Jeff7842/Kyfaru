@@ -45,15 +45,15 @@ export interface QuoteDocData {
   notes?: string
 }
 
-// Copied into public/fonts/ from @fontsource rather than read from
-// node_modules at runtime - see invoice-pdf.ts's fontFile() for why
-// (Vercel's serverless file-tracing didn't reliably survive pnpm's
-// symlinked node_modules layout, public/ sidesteps the problem entirely).
-const fontFile = (file: string) => path.join(process.cwd(), 'public', 'fonts', file)
-const ROBOTO_REGULAR = fontFile('roboto-latin-400-normal.woff')
-const ROBOTO_BOLD = fontFile('roboto-latin-700-normal.woff')
-const MONO_REGULAR = fontFile('roboto-mono-latin-400-normal.woff')
-const MONO_BOLD = fontFile('roboto-mono-latin-700-normal.woff')
+// Built as plain strings (not require.resolve/import) so Next.js's bundler
+// doesn't try to trace and bundle the .woff files as a module dependency -
+// same reasoning as invoice-pdf.ts.
+const fontsourceFile = (pkg: string, file: string) =>
+  path.join(process.cwd(), 'node_modules', '@fontsource', pkg, 'files', file)
+const ROBOTO_REGULAR = fontsourceFile('roboto', 'roboto-latin-400-normal.woff')
+const ROBOTO_BOLD = fontsourceFile('roboto', 'roboto-latin-700-normal.woff')
+const MONO_REGULAR = fontsourceFile('roboto-mono', 'roboto-mono-latin-400-normal.woff')
+const MONO_BOLD = fontsourceFile('roboto-mono', 'roboto-mono-latin-700-normal.woff')
 
 const W = 595.28
 const H = 841.89
@@ -110,7 +110,7 @@ export async function buildQuotePdf(data: QuoteDocData): Promise<Uint8Array> {
   y -= 60
 
   // Title
-  text('QUOTATION', MARGIN, y, { size: 22, bold: true, color: INK })
+  text('SOFTWARE QUOTATION', MARGIN, y, { size: 22, bold: true, color: INK })
   y -= 8
   page.drawLine({ start: { x: MARGIN, y }, end: { x: W - MARGIN, y }, thickness: 1.5, color: ACCENT })
   y -= 28
@@ -174,23 +174,59 @@ export async function buildQuotePdf(data: QuoteDocData): Promise<Uint8Array> {
     y -= rowH
   }
 
-  y -= 12
+  y -= 24
   const discount = data.discount ?? 0
   const afterDiscount = subtotal - discount
   const tax = afterDiscount * (data.taxRate / 100)
   const total = afterDiscount + tax
-  const summaryRow = (label: string, value: string, opts: { bold?: boolean; size?: number } = {}) => {
-    text(label, col.price, y, { size: opts.size ?? 9.5, bold: opts.bold, color: opts.bold ? INK : MUTED })
-    text(value, col.amount, y, { size: opts.size ?? 9.5, mono: true, bold: opts.bold, align: 'right' })
-    y -= 18
-  }
-  summaryRow('Subtotal', money(subtotal))
-  // Omitted entirely when zero, per the quote's own convention of not
-  // showing a line that has nothing to say.
-  if (discount > 0) summaryRow('Discount', `-${money(discount)}`)
-  summaryRow(`Tax (${data.taxRate}%)`, money(tax))
-  page.drawLine({ start: { x: col.price, y: y + 10 }, end: { x: W - MARGIN, y: y + 10 }, thickness: 1, color: INK })
-  summaryRow('Total', money(total), { bold: true, size: 12 })
+  const summaryRow = (
+  label: string,
+  value: string,
+  opts: {
+    bold?: boolean
+    size?: number
+    labelColor?: typeof INK
+    valueColor?: typeof INK
+  } = {},
+) => {
+  text(label, col.price, y, {
+    size: opts.size ?? 9.5,
+    bold: opts.bold,
+    color: opts.labelColor ?? MUTED,
+  })
+
+  text(value, col.amount, y, {
+    size: opts.size ?? 9.5,
+    mono: true,
+    bold: opts.bold,
+    color: opts.valueColor ?? INK,
+    align: 'right',
+  })
+
+  y -= 18
+}
+  summaryRow('Subtotal', money(subtotal), {
+  labelColor: ACCENT,
+})
+
+if (discount > 0) {
+  summaryRow('Discount', `-${money(discount)}`, {
+    labelColor: ACCENT,
+  })
+}
+
+summaryRow(`Tax (${data.taxRate}%)`, money(tax), {
+  labelColor: ACCENT,
+})
+  page.drawLine({ start: { x: col.price, y: y + 10 }, end: { x: W - MARGIN, y: y + 10 }, thickness: 1, color: ACCENT, })
+  // Extra vertical gap
+  y -= 20
+  summaryRow('Total', money(total), {
+  bold: true,
+  size: 12,
+  labelColor: ACCENT,
+  valueColor: ACCENT,
+})
 
   const wrapText = (str: string, font: typeof roboto, size: number, maxWidth: number): string[] => {
     const words = str.split(' ')
