@@ -183,7 +183,11 @@ export function categoryFor(name: string): StackCategory {
 // Standard integration fee for a tool, by name - looked up from the catalog
 // rather than trusted off a saved StackItem, so a price added/changed here
 // later applies to already-selected tools too, not just newly-picked ones.
-export function priceFor(item: StackItem): number {
-  if (typeof item.defaultPrice === 'number') return item.defaultPrice
-  return LOOKUP.get(item.name.toLowerCase())?.defaultPrice ?? 0
+// `item` is typed StackItem but may still be a bare string at runtime for
+// projects whose `tools` were saved back when this field was string[] -
+// guard rather than crash on `.name`/`.toLowerCase()`.
+export function priceFor(item: StackItem | string): number {
+  if (typeof item === 'string') return LOOKUP.get(item.toLowerCase())?.defaultPrice ?? 0
+  if (typeof item?.defaultPrice === 'number') return item.defaultPrice
+  return LOOKUP.get(item?.name?.toLowerCase?.() ?? '')?.defaultPrice ?? 0
 }

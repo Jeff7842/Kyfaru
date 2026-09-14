@@ -30,7 +30,7 @@ export default function Header() {
       <div className="ml-auto flex items-center gap-2">
         <NotificationBell />
         <Link
-          href="/admin/settings/profile"
+          href="/admin/settings"
           className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-black/5"
         >
           <div className="w-8 h-8 rounded-full bg-emerald-700/15 text-emerald-700 flex items-center justify-center text-xs font-semibold">

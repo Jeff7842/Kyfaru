@@ -71,23 +71,34 @@ export default function StackInput({ label, value, onChange }: Props) {
     }
   }, [open])
 
+  // Defensive: `value` may still hold legacy entries saved back when this
+  // field was a plain string[] (pre-StackItem[]) - coerce or drop anything
+  // that isn't a real {name, category} object instead of crashing on it.
+  const items = useMemo(
+    () =>
+      (value ?? [])
+        .map((v) => (typeof v === 'string' ? { name: v, category: categoryFor(v) } : v))
+        .filter((v): v is StackItem => !!v && typeof v.name === 'string'),
+    [value],
+  )
+
   const q = query.trim().toLowerCase()
   const { matches, exactExists } = useMemo(() => {
-    const selectedNames = new Set(value.map((v) => v.name.toLowerCase()))
+    const selectedNames = new Set(items.map((v) => v.name.toLowerCase()))
     return {
       matches: TECH_CATALOG.filter((t) => !selectedNames.has(t.name.toLowerCase()) && t.name.toLowerCase().includes(q)),
       exactExists: TECH_CATALOG.some((t) => t.name.toLowerCase() === q) || selectedNames.has(q),
     }
-  }, [q, value])
+  }, [q, items])
 
   function add(item: StackItem) {
-    if (value.some((v) => v.name.toLowerCase() === item.name.toLowerCase())) return
-    onChange([...value, item])
+    if (items.some((v) => v.name.toLowerCase() === item.name.toLowerCase())) return
+    onChange([...items, item])
     setQuery('')
   }
 
   function remove(name: string) {
-    onChange(value.filter((v) => v.name !== name))
+    onChange(items.filter((v) => v.name !== name))
   }
 
   function addCustom() {
@@ -115,9 +126,9 @@ export default function StackInput({ label, value, onChange }: Props) {
       {label && <label className="text-xs font-medium text-zinc-700">{label}</label>}
 
       {/* selected chips - flat, colour-coded by category */}
-      {value.length > 0 && (
+      {items.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {value.map((it) => {
+          {items.map((it) => {
             const cat = it.custom ? it.category : categoryFor(it.name)
             return (
               <span
