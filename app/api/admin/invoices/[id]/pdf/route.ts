@@ -23,10 +23,11 @@ const ordinal = (d: number) => {
 const fmtDate = (d: Date) =>
   `${ordinal(d.getDate())} ${d.toLocaleString('en-US', { month: 'long' })} ${d.getFullYear()}`
 
-export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const preview = new URL(req.url).searchParams.get('preview') === '1'
   const { id } = await params
   const invoice = await db.query.invoices.findFirst({
     where: eq(invoices.id, id),
@@ -72,7 +73,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   return new NextResponse(Buffer.from(pdf), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${docFilename(invoice.project?.name, 'Invoice')}"`,
+      'Content-Disposition': `${preview ? 'inline' : 'attachment'}; filename="${docFilename(invoice.project?.name, 'Invoice')}"`,
     },
   })
 }
