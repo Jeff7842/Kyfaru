@@ -357,13 +357,15 @@ export const quotes = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     quoteNumber: text('quote_number').notNull().unique(),
+    // A project can have several quotes over time (revisions, re-quotes) -
+    // no longer unique per project; quoteNumber stays the durable identifier.
     projectId: uuid('project_id')
       .references(() => projects.id)
-      .notNull()
-      .unique(),
+      .notNull(),
     clientId: uuid('client_id')
       .references(() => clients.id)
       .notNull(),
+    title: text('title'), // admin-facing label, e.g. "Initial quote", "Revised scope" - null falls back to the quote number in the UI
     status: quoteStatusEnum('status').notNull().default('draft'),
     quoteDate: timestamp('quote_date').defaultNow().notNull(),
     dueDate: timestamp('due_date'),
