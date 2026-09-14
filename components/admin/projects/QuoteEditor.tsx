@@ -389,18 +389,27 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
           </button>
         </div>
 
-        {/* Admin-only editable pricing for the project's selected tools - tool
-            names never appear on the exported/printed quote, only here. */}
-        {toolsPricing.length > 0 && (
-          <div className="print:hidden mb-6 border border-[var(--kf-border)] rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[10px] uppercase tracking-wide text-black font-semibold">Tools &amp; equipment pricing (internal)</p>
-              <ToggleSwitch checked={includeToolsRow} onChange={setIncludeToolsRow}>Include in quote</ToggleSwitch>
-            </div>
+        {/* Admin-only editable pricing for tools/equipment - tool names never
+            appear on the exported/printed quote, only here. Always visible
+            (not gated on already having entries) so the admin can add rows
+            from scratch, not just edit ones seeded from the project's Tools. */}
+        <div className="print:hidden mb-6 border border-[var(--kf-border)] rounded-xl p-4 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[10px] uppercase tracking-wide text-black font-semibold">Tools &amp; equipment pricing (internal)</p>
+            <ToggleSwitch checked={includeToolsRow} onChange={setIncludeToolsRow}>Include in quote</ToggleSwitch>
+          </div>
+          {toolsPricing.length === 0 ? (
+            <p className="text-xs text-zinc-400">No tools added yet.</p>
+          ) : (
             <div className="space-y-2">
               {toolsPricing.map((t, i) => (
-                <div key={t.name} className="flex items-center gap-2">
-                  <span className="flex-1 text-xs text-black truncate">{t.name}</span>
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={t.name}
+                    onChange={(e) => updateTool(i, { name: e.target.value })}
+                    placeholder="Tool name"
+                    className="kf-modal-input h-8 text-xs flex-1"
+                  />
                   <div className="relative">
                     <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400 pointer-events-none" />
                     <input
@@ -420,14 +429,29 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
                     <option value="monthly">Monthly</option>
                     <option value="annual">Annual</option>
                   </select>
+                  <button
+                    type="button"
+                    onClick={() => setToolsPricing((p) => p.filter((_, idx) => idx !== i))}
+                    className="p-1.5 text-zinc-400 hover:text-red-600 transition"
+                    aria-label="Remove tool"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ))}
             </div>
-            <p className="text-[11px] text-zinc-400">
-              Never itemised by name on the exported quote - one-time tools fold into &ldquo;Tools &amp; Equipment&rdquo; above, recurring ones into the payment schedule below.
-            </p>
-          </div>
-        )}
+          )}
+          <button
+            type="button"
+            onClick={() => setToolsPricing((p) => [...p, { name: '', price: 0, duration: 'one_time' }])}
+            className="text-xs text-[var(--kf-green)] hover:underline flex items-center gap-1"
+          >
+            <Plus className="w-3.5 h-3.5" /> Add tool
+          </button>
+          <p className="text-[11px] text-zinc-400">
+            Never itemised by name on the exported quote - one-time tools fold into &ldquo;Tools &amp; Equipment&rdquo; above, recurring ones into the payment schedule below.
+          </p>
+        </div>
 
         <div className="flex justify-end mb-8">
           <div className="w-full sm:w-64 space-y-1.5 text-sm">
