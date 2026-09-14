@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Loader2, Save } from 'lucide-react'
 import Drawer from '@/components/admin/shared/Drawer'
 import { TextField, TextAreaField } from '@/components/admin/shared/Form/Field'
+import { InputNumber } from '@/components/admin/shared/Form/InputNumber'
 import DatePicker from '@/components/admin/shared/DatePicker'
 import { kfToast } from '@/lib/admin/toast'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
@@ -86,7 +87,7 @@ export default function ExpenseFormDrawer({ open, onClose, expense, onSaved }: P
         <TextField label="Category" required value={form.category} onChange={(e) => set('category', e.target.value)} placeholder="Hosting, Tools, Subcontractor…" />
         <TextField label="Description" required value={form.description} onChange={(e) => set('description', e.target.value)} />
         <div className="grid grid-cols-2 gap-3">
-          <TextField label="Amount (KES)" type="number" required value={form.amount} onChange={(e) => set('amount', e.target.value)} />
+          <InputNumber label="Amount (KES)" required min={0} value={Number(form.amount) || 0} onChange={(v) => set('amount', String(v))} />
           <DatePicker label="Paid date" value={form.paidAt || null} onChange={(v) => set('paidAt', v ?? '')} />
         </div>
         <TextAreaField label="Notes" maxLength={300} value={form.notes} onChange={(e) => set('notes', e.target.value)} />

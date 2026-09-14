@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import HeroSection from '@/components/admin/layout/HeroSection'
 import StatusBadge from '@/components/admin/shared/StatusBadge'
 import { TextField, TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
+import { InputNumber } from '@/components/admin/shared/Form/InputNumber'
 import StackInput from '@/components/admin/shared/StackInput'
 import VerticalStepper, { type ActivityGroup } from '@/components/admin/projects/VerticalStepper'
 import { kfToast } from '@/lib/admin/toast'
@@ -561,12 +562,11 @@ function PagesSection({
     <div className="kf-card rounded-2xl space-y-4">
       <h3 className="text-sm font-semibold text-[var(--kf-text)]">Pages</h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <TextField
+        <InputNumber
           label="Planned page count"
-          type="number"
           min={0}
           value={pages.plannedCount}
-          onChange={(e) => onChange({ ...pages, plannedCount: Number(e.target.value) || 0 })}
+          onChange={(v) => onChange({ ...pages, plannedCount: v })}
         />
         <SelectField
           label="Add a page"

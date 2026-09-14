@@ -13,6 +13,7 @@ import { formatQuoteMoney, CURRENCY_OPTIONS } from '@/lib/admin/constants/curren
 import { ACCENT_COLOR_OPTIONS, accentHex } from '@/lib/admin/constants/quote-colors'
 import HeroSection from '@/components/admin/layout/HeroSection'
 import { TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
+import { InputNumber } from '@/components/admin/shared/Form/InputNumber'
 import DatePicker from '@/components/admin/shared/DatePicker'
 import { kfToast } from '@/lib/admin/toast'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
@@ -344,7 +345,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
         <table className="w-full mb-6">
           <thead>
             <tr className="text-white text-xs" style={{ backgroundColor: accent }}>
-              <th className="text-left font-semibold py-2.5 px-3 w-16 rounded-l-md">QTY</th>
+              <th className="text-left font-semibold py-2.5 px-3 w-28 rounded-l-md">QTY</th>
               <th className="text-left font-semibold py-2.5 px-3">Description</th>
               <th className="text-right font-semibold py-2.5 px-3 w-36">Unit price</th>
               <th className="text-right font-semibold py-2.5 px-3 w-36 rounded-r-md">Amount</th>
@@ -355,7 +356,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
             {items.map((it, i) => (
               <tr key={i} className="border-b border-[var(--kf-border)] text-sm">
                 <td className="py-2.5 px-3">
-                  <input type="number" min={0} value={it.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="w-full bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
+                  <InputNumber variant="compact" min={0} value={it.quantity} onChange={(v) => updateItem(i, { quantity: v })} className="w-24" />
                 </td>
                 <td className="py-2.5 px-3">
                   <input value={it.description} onChange={(e) => updateItem(i, { description: e.target.value })} placeholder="Item description" className="w-full bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
@@ -363,7 +364,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
                 <td className="py-2.5 px-3">
                   <div className="relative print:static">
                     <DollarSign className="print:hidden absolute left-1 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400 pointer-events-none" />
-                    <input type="number" min={0} value={it.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} className="w-full text-right bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded pl-4 print:pl-0" />
+                    <InputNumber variant="compact" min={0} value={it.unitPrice} onChange={(v) => updateItem(i, { unitPrice: v })} className="w-full pl-4 print:pl-0" />
                   </div>
                 </td>
                 <td className="py-2.5 px-3 text-right font-medium">{money((Number(it.quantity) || 0) * (Number(it.unitPrice) || 0))}</td>
@@ -420,13 +421,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
                   />
                   <div className="relative">
                     <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400 pointer-events-none" />
-                    <input
-                      type="number"
-                      min={0}
-                      value={t.price}
-                      onChange={(e) => updateTool(i, { price: Number(e.target.value) })}
-                      className="kf-modal-input h-8 text-xs w-28 pl-6"
-                    />
+                    <InputNumber variant="compact" min={0} value={t.price} onChange={(v) => updateTool(i, { price: v })} className="h-8 text-xs w-32 pl-6" />
                   </div>
                   <select
                     value={t.duration}
@@ -474,7 +469,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
                 Discount
                 <span className="print:hidden relative inline-flex items-center">
                   <DollarSign className="absolute left-1 w-2.5 h-2.5 text-zinc-400 pointer-events-none" />
-                  <input type="number" min={0} value={discount} onChange={(e) => setDiscount(e.target.value)} className="w-20 pl-4 bg-transparent border-0 border-b border-zinc-200 text-xs" />
+                  <InputNumber variant="compact" min={0} value={Number(discount) || 0} onChange={(v) => setDiscount(String(v))} className="w-28 pl-4 border-b border-zinc-200 text-xs" />
                 </span>
               </span>
               <span>-{money(discountAmount)}</span>
@@ -484,7 +479,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
                 Tax
                 <span className="print:hidden relative inline-flex items-center">
                   <Percent className="absolute left-1 w-2.5 h-2.5 text-zinc-400 pointer-events-none" />
-                  <input type="number" min={0} max={100} value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="w-14 pl-4 bg-transparent border-0 border-b border-zinc-200 text-xs text-center" />
+                  <InputNumber variant="compact" min={0} max={100} value={Number(taxRate) || 0} onChange={(v) => setTaxRate(String(v))} className="w-24 pl-4 border-b border-zinc-200 text-xs" />
                 </span>
                 <span className="print:inline hidden">({taxRate}</span>%<span className="print:inline hidden">)</span>
               </span>
@@ -508,7 +503,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
                 (
                 <span className="relative inline-flex items-center">
                   <Percent className="absolute left-1 w-2.5 h-2.5 text-zinc-400 pointer-events-none" />
-                  <input type="number" min={0} max={100} value={depositPercent} onChange={(e) => setDepositPercent(e.target.value)} className="w-12 pl-4 bg-transparent border-0 border-b border-zinc-200 text-xs text-center" />
+                  <InputNumber variant="compact" min={0} max={100} value={Number(depositPercent) || 0} onChange={(v) => setDepositPercent(String(v))} className="w-24 pl-4 border-b border-zinc-200 text-xs" />
                 </span>
                 %)
                 <ToggleSwitch checked={depositEnabled} onChange={setDepositEnabled} />
@@ -535,7 +530,7 @@ export default function QuoteEditor({ projectId, quoteId, initialProject, initia
                 <span className="print:hidden">{currency}</span>
                 <span className="print:hidden relative inline-flex items-center">
                   <DollarSign className="absolute left-1 w-3 h-3 text-zinc-400 pointer-events-none" />
-                  <input type="number" min={0} value={maintenanceFee} onChange={(e) => setMaintenanceFee(e.target.value)} className="w-20 pl-4 bg-transparent border-0 border-b border-zinc-200 text-right" />
+                  <InputNumber variant="compact" min={0} value={Number(maintenanceFee) || 0} onChange={(v) => setMaintenanceFee(String(v))} className="w-32 pl-4 border-b border-zinc-200" />
                 </span>
                 <span className="print:inline hidden">{money(Number(maintenanceFee))}</span>
                 <span>/mo</span>

@@ -7,6 +7,7 @@ import { Loader2, Save, Eye, FileDown, Plus, Trash2 } from 'lucide-react'
 import { formatMoney } from '@/lib/admin/utils'
 import HeroSection from '@/components/admin/layout/HeroSection'
 import { TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
+import { InputNumber } from '@/components/admin/shared/Form/InputNumber'
 import DatePicker from '@/components/admin/shared/DatePicker'
 import { kfToast } from '@/lib/admin/toast'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
@@ -278,7 +279,7 @@ export default function InvoiceEditor({ invoiceId, initialInvoice }: Props) {
           <thead>
             <tr className="text-white text-xs" style={{ backgroundColor: 'var(--kf-green)' }}>
               <th className="text-left font-semibold py-2.5 px-3 rounded-l-md">Description</th>
-              <th className="text-right font-semibold py-2.5 px-3 w-20">Qty</th>
+              <th className="text-right font-semibold py-2.5 px-3 w-28">Qty</th>
               <th className="text-right font-semibold py-2.5 px-3 w-32">Price</th>
               <th className="text-right font-semibold py-2.5 px-3 w-32 rounded-r-md">Total</th>
               <th className="w-8" />
@@ -291,10 +292,10 @@ export default function InvoiceEditor({ invoiceId, initialInvoice }: Props) {
                   <input value={it.product} onChange={(e) => updateItem(i, { product: e.target.value })} placeholder="Item description" className="w-full bg-transparent border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
                 </td>
                 <td className="py-2.5 px-3">
-                  <input type="number" min={0} value={it.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
+                  <InputNumber variant="compact" min={0} value={it.quantity} onChange={(v) => updateItem(i, { quantity: v })} className="w-24" />
                 </td>
                 <td className="py-2.5 px-3">
-                  <input type="number" min={0} value={it.price} onChange={(e) => updateItem(i, { price: Number(e.target.value) })} className="w-full text-right bg-transparent border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
+                  <InputNumber variant="compact" min={0} value={it.price} onChange={(v) => updateItem(i, { price: v })} className="w-full" />
                 </td>
                 <td className="py-2.5 px-3 text-right font-medium">{formatMoney((Number(it.quantity) || 0) * (Number(it.price) || 0))}</td>
                 <td>
@@ -315,7 +316,7 @@ export default function InvoiceEditor({ invoiceId, initialInvoice }: Props) {
             </div>
             <div className="flex justify-between items-center text-[var(--kf-text-muted)]">
               <span>VAT</span>
-              <input type="number" min={0} value={vatAmount} onChange={(e) => setVatAmount(e.target.value)} className="w-24 text-right bg-transparent border-0 border-b border-zinc-200 text-xs" />
+              <InputNumber variant="compact" min={0} value={Number(vatAmount) || 0} onChange={(v) => setVatAmount(String(v))} className="w-32 border-b border-zinc-200 text-xs" />
             </div>
             <div className="flex justify-between font-bold text-base pt-1.5 border-t border-[var(--kf-border)] text-[var(--kf-green)]">
               <span>Total</span>
