@@ -35,12 +35,25 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!invoice) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
 
   const raw = (invoice.lineItems as { product: string; quantity: number; price: number }[]) ?? []
-  const items: InvoiceLineItem[] = raw.map((it) => ({
-    product: it.product,
-    price: money(Number(it.price) || 0),
-    quantity: it.quantity,
-    total: money((Number(it.price) || 0) * (Number(it.quantity) || 0)),
-  }))
+  const items: InvoiceLineItem[] = raw.length
+    ? raw.map((it) => ({
+        product: it.product,
+        price: money(Number(it.price) || 0),
+        quantity: it.quantity,
+        total: money((Number(it.price) || 0) * (Number(it.quantity) || 0)),
+      }))
+    : [
+        // Legacy invoices created before line items were required - the PDF
+        // has nothing real to itemise, so fall back to one row reflecting
+        // the invoice's own total rather than rendering a blank table.
+        // Edit the invoice and add real line items to replace this.
+        {
+          product: 'Professional services',
+          price: money(Math.max(0, Number(invoice.amount) - Number(invoice.vatAmount ?? 0))),
+          quantity: 1,
+          total: money(Math.max(0, Number(invoice.amount) - Number(invoice.vatAmount ?? 0))),
+        },
+      ]
 
   const pdf = await buildInvoicePdf({
     invoiceNumber: invoice.invoiceNumber,

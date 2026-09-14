@@ -97,6 +97,10 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
     if (!dueDate) return kfToast.warning('Due date is required')
     const clientId = selectedProject?.client?.id ?? selectedProject?.clientId
     if (!clientId) return kfToast.error('Selected project has no client')
+    const validItems = items.filter((it) => it.product.trim() && (Number(it.price) || 0) > 0)
+    if (validItems.length === 0) {
+      return kfToast.warning('Add at least one line item with a description and price - the invoice PDF is built entirely from these')
+    }
 
     setSaving(true)
     try {
@@ -107,7 +111,7 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
         vatAmount: Number(vatAmount) || 0,
         status,
         dueDate,
-        lineItems: items.filter((it) => it.product.trim()),
+        lineItems: validItems,
         notes,
         ...(status !== 'draft' ? { issuedAt: new Date().toISOString() } : {}),
         ...(status === 'paid' && !invoice?.paidAt ? { paidAt: new Date().toISOString() } : {}),
