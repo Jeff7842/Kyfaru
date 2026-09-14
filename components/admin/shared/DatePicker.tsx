@@ -111,10 +111,23 @@ export default function DatePicker(props: Props) {
       destroyed = true
       // destroy() alone doesn't drain the popup's own outside-click/resize/keydown
       // listeners if it's still open when unmounted - hide() first, then destroy().
-      calendarRef.current?.hide()
-      calendarRef.current?.destroy()
+      // Wrapped in try/catch: a fast unmount (e.g. an SPA navigation away from
+      // this page) can beat vanilla-calendar-pro's own cleanup to the DOM node,
+      // making its internal removeEventListener calls throw on an already-gone
+      // element - nothing to recover from during teardown, so swallow it rather
+      // than crash the whole React tree.
+      try {
+        calendarRef.current?.hide()
+        calendarRef.current?.destroy()
+      } catch {
+        // unmounting anyway
+      }
       calendarRef.current = null
-      detachInputRef.current?.()
+      try {
+        detachInputRef.current?.()
+      } catch {
+        // unmounting anyway
+      }
       detachInputRef.current = null
     }
     // Only re-create on single/range switch - the sync effect below handles

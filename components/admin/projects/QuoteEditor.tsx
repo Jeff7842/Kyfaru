@@ -3,17 +3,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, Save, Printer, FileDown, Plus, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { formatMoney } from '@/lib/admin/utils'
+import {
+  Loader2, Save, Printer, FileDown, Eye, Plus, X,
+  DollarSign, Percent, Mail, Phone, Calendar,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { formatQuoteMoney, CURRENCY_OPTIONS } from '@/lib/admin/constants/currencies'
+import { ACCENT_COLOR_OPTIONS, accentHex } from '@/lib/admin/constants/quote-colors'
 import HeroSection from '@/components/admin/layout/HeroSection'
-import { TextAreaField } from '@/components/admin/shared/Form/Field'
+import { TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
 import DatePicker from '@/components/admin/shared/DatePicker'
 import { kfToast } from '@/lib/admin/toast'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
-import { priceFor, type StackItem } from '@/lib/admin/constants/tech-catalog'
-import type { ProjectRequirementsDoc } from '@/lib/admin/types/project-requirements'
+import { useRegisterNavigationGuard } from '@/hooks/useNavigationGuard'
 import type { Quote, Project, Client } from '@/lib/admin/db/schema'
+import type { ToolPricing } from '@/lib/admin/docs/quote-pdf'
 
 type ProjectWithClient = Project & { client: Client | null }
 
@@ -30,6 +34,11 @@ const STATUS_OPTIONS = [
   { value: 'declined', label: 'Declined' },
   { value: 'expired', label: 'Expired' },
 ]
+
+// Same figure as lib/admin/docs/docx-helpers.ts's LOGO_ASPECT - kept as a
+// local constant since that module is server-only (reads the file off disk)
+// and can't be imported into this client component.
+const LOGO_ASPECT = 5420 / 1635
 
 const blankItem = (): LineItem => ({ description: '', quantity: 1, unitPrice: 0 })
 
@@ -54,10 +63,17 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
 
   const [items, setItems] = useState<LineItem[]>([blankItem()])
   const [taxRate, setTaxRate] = useState('0')
+  const [currency, setCurrency] = useState('KES')
+  const [accentColor, setAccentColor] = useState('green')
+  const [contactEmail, setContactEmail] = useState('info@kyfaru.com')
+  const [contactPhone, setContactPhone] = useState('+254 705 256 443')
   const [dueDate, setDueDate] = useState<string | null>(null)
   const [terms, setTerms] = useState('')
   const [notes, setNotes] = useState('')
   const [status, setStatus] = useState('draft')
+  // Editable per-quote pricing for the project's selected tools - seeded
+  // server-side from the catalog, freely edited here (price + duration).
+  const [toolsPricing, setToolsPricing] = useState<ToolPricing[]>([])
   // System rows - computed, not hand-typed, each on by default and togglable per quote.
   const [includeToolsRow, setIncludeToolsRow] = useState(true)
   const [depositEnabled, setDepositEnabled] = useState(true)
@@ -66,6 +82,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
   const [maintenanceFee, setMaintenanceFee] = useState('0')
   const [saving, setSaving] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
   const snapshotRef = useRef('')
   const loadedRef = useRef(false)
 
@@ -76,18 +93,26 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     const nextItems = li.length ? li : [blankItem()]
     const nextDue = quote.dueDate ? new Date(quote.dueDate).toISOString().slice(0, 10) : null
     const next = {
-      items: nextItems, taxRate: quote.taxRate ?? '0', dueDate: nextDue,
+      items: nextItems, taxRate: quote.taxRate ?? '0', currency: quote.currency ?? 'KES',
+      accentColor: quote.accentColor ?? 'green', contactEmail: quote.contactEmail ?? 'info@kyfaru.com',
+      contactPhone: quote.contactPhone ?? '+254 705 256 443', dueDate: nextDue,
       terms: quote.termsAndConditions ?? '', notes: quote.notes ?? '', status: quote.status,
+      toolsPricing: (quote.toolsPricing as ToolPricing[] | null) ?? [],
       includeToolsRow: quote.includeToolsRow, depositEnabled: quote.depositEnabled,
       depositPercent: quote.depositPercent ?? '50', maintenanceEnabled: quote.maintenanceEnabled,
       maintenanceFee: quote.maintenanceFee ?? '0',
     }
     setItems(next.items)
     setTaxRate(next.taxRate)
+    setCurrency(next.currency)
+    setAccentColor(next.accentColor)
+    setContactEmail(next.contactEmail)
+    setContactPhone(next.contactPhone)
     setDueDate(next.dueDate)
     setTerms(next.terms)
     setNotes(next.notes)
     setStatus(next.status)
+    setToolsPricing(next.toolsPricing)
     setIncludeToolsRow(next.includeToolsRow)
     setDepositEnabled(next.depositEnabled)
     setDepositPercent(next.depositPercent)
@@ -96,30 +121,51 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     snapshotRef.current = JSON.stringify(next)
   }, [quote])
 
-  const isDirty = JSON.stringify({
-    items, taxRate, dueDate, terms, notes, status,
-    includeToolsRow, depositEnabled, depositPercent, maintenanceEnabled, maintenanceFee,
-  }) !== snapshotRef.current
+  // Kept as a function (not a memoized value) so it always reads the latest
+  // state when called from isDirty (every render) and from save() (on demand)
+  // - field order here must match the `next` object in the load effect above,
+  // since JSON.stringify key order affects the dirty-check string comparison.
+  function buildSnapshot() {
+    return JSON.stringify({
+      items, taxRate, currency, accentColor, contactEmail, contactPhone, dueDate, terms, notes, status,
+      toolsPricing, includeToolsRow, depositEnabled, depositPercent, maintenanceEnabled, maintenanceFee,
+    })
+  }
+
+  const isDirty = buildSnapshot() !== snapshotRef.current
   const goBack = () => router.push('/admin/projects')
   const requestClose = useConfirmClose(isDirty, goBack)
+  useRegisterNavigationGuard(isDirty)
 
-  // Standard integration fees for the project's selected tools (from the
-  // project details page's "Tools" picker) - shown to the client as one
-  // generic "Tools & Equipment" figure, never itemised by tool name, so the
-  // quote never reveals which specific vendors/tools Kyfaru uses internally.
-  const projectTools = ((project.scopeDocument as ProjectRequirementsDoc | null)?.tools ?? []) as StackItem[]
-  const pricedTools = projectTools.filter((t) => priceFor(t) > 0)
-  const toolsTotal = includeToolsRow ? pricedTools.reduce((s, t) => s + priceFor(t), 0) : 0
+  // Tools & equipment pricing, aggregated exactly like the server-side PDF
+  // route does: one-time tools fold into the main items subtotal as one
+  // generic line, monthly/annual ones surface as recurring-cost lines in the
+  // payment schedule - never itemised by tool name on the printed document.
+  const oneTimeToolsTotal = includeToolsRow
+    ? toolsPricing.filter((t) => t.duration === 'one_time').reduce((s, t) => s + (Number(t.price) || 0), 0)
+    : 0
+  const recurringMonthlyTotal = includeToolsRow
+    ? toolsPricing.filter((t) => t.duration === 'monthly').reduce((s, t) => s + (Number(t.price) || 0), 0)
+    : 0
+  const recurringAnnualTotal = includeToolsRow
+    ? toolsPricing.filter((t) => t.duration === 'annual').reduce((s, t) => s + (Number(t.price) || 0), 0)
+    : 0
 
   const itemsSubtotal = items.reduce((s, it) => s + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0), 0)
-  const subtotal = itemsSubtotal + toolsTotal
+  const subtotal = itemsSubtotal + oneTimeToolsTotal
   const tax = subtotal * (Number(taxRate) / 100 || 0)
   const total = subtotal + tax
   const depositAmount = total * (Number(depositPercent) / 100 || 0)
   const balanceAmount = total - depositAmount
+  const accent = accentHex(accentColor)
+  const money = (n: number) => formatQuoteMoney(n, currency)
 
   function updateItem(i: number, patch: Partial<LineItem>) {
     setItems((prev) => prev.map((it, idx) => (idx === i ? { ...it, ...patch } : it)))
+  }
+
+  function updateTool(i: number, patch: Partial<ToolPricing>) {
+    setToolsPricing((prev) => prev.map((t, idx) => (idx === i ? { ...t, ...patch } : t)))
   }
 
   async function save(): Promise<boolean> {
@@ -131,10 +177,15 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
         body: JSON.stringify({
           lineItems: items.filter((it) => it.description.trim()),
           taxRate,
+          currency,
+          accentColor,
+          contactEmail,
+          contactPhone,
           dueDate,
           termsAndConditions: terms,
           notes,
           status,
+          toolsPricing,
           includeToolsRow,
           depositEnabled,
           depositPercent,
@@ -147,10 +198,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
         kfToast.error(resData.error ?? 'Save failed')
         return false
       }
-      snapshotRef.current = JSON.stringify({
-        items, taxRate, dueDate, terms, notes, status,
-        includeToolsRow, depositEnabled, depositPercent, maintenanceEnabled, maintenanceFee,
-      })
+      snapshotRef.current = buildSnapshot()
       qc.invalidateQueries({ queryKey: ['project-quote', projectId] })
       return true
     } catch {
@@ -186,6 +234,16 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     }
   }
 
+  async function handlePreview() {
+    setPreviewing(true)
+    try {
+      if (isDirty && !(await save())) return
+      window.open(`/api/admin/projects/${projectId}/quote/pdf?preview=1`, '_blank')
+    } finally {
+      setPreviewing(false)
+    }
+  }
+
   return (
     <div className="space-y-6 kf-anim-in pb-10 print:space-y-0 print:pb-0">
       <div className="print:hidden">
@@ -209,6 +267,10 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
           <button onClick={() => window.print()} className="h-9 px-4 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition flex items-center gap-2">
             <Printer className="w-4 h-4" /> Print
           </button>
+          <button onClick={handlePreview} disabled={previewing} className="h-9 px-4 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition flex items-center gap-2 disabled:opacity-60">
+            {previewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+            Preview
+          </button>
           <button onClick={handleExportPdf} disabled={exporting} className="h-9 px-4 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition flex items-center gap-2 disabled:opacity-60">
             {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
             Export PDF
@@ -220,9 +282,18 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
       <div className="kf-card rounded-2xl print:rounded-none print:border-none print:shadow-none print:p-0 p-6 md:p-10 max-w-3xl mx-auto">
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-xl font-bold text-[var(--kf-green)]">Kyfaru</h1>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Logos/Kyfaru Logo-08.png"
+              alt="Kyfaru"
+              style={{ width: 100, height: 100 / LOGO_ASPECT }}
+              className="mb-1.5"
+            />
             <p className="text-[10px] tracking-widest uppercase text-black">Tech with horns</p>
-            <p className="text-xs text-black mt-2">info@kyfaru.com · +254 705 256 443</p>
+            <div className="mt-2 space-y-1 max-w-[200px]">
+              <ContactField icon={Mail} type="email" value={contactEmail} onChange={setContactEmail} placeholder="info@kyfaru.com" />
+              <ContactField icon={Phone} type="text" value={contactPhone} onChange={setContactPhone} placeholder="+254 705 256 443" />
+            </div>
           </div>
           <div className="text-right">
             <h2 className="text-2xl font-bold text-[var(--kf-text)]">QUOTATION</h2>
@@ -230,56 +301,64 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
           </div>
         </div>
 
-        <div className="h-0.5 bg-[var(--kf-green)] mb-8" />
+        <div className="h-0.5 mb-8" style={{ backgroundColor: accent }} />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
             <p className="text-[10px] uppercase tracking-wide text-black mb-1">Bill to</p>
             <p className="text-sm font-semibold text-black">{project.client?.name ?? '—'}</p>
             <p className="text-xs text-black">{project.name}</p>
             {project.client?.address && <p className="text-xs text-black">{project.client.address}</p>}
           </div>
-          <div className="sm:text-right space-y-1.5">
+          <div className="md:text-right space-y-1.5">
             <MetaRow label="Quote date" value={quote ? new Date(quote.quoteDate).toLocaleDateString('en-GB') : '—'} />
-            <div className="flex sm:justify-end items-center gap-2">
-              <span className="text-xs font-medium text-black">Valid until</span>
+            <div className="flex md:justify-end items-center gap-2">
+              <span className="text-xs font-medium text-black shrink-0">Valid until</span>
               <span className="print:inline hidden text-sm text-black">{dueDate ? new Date(dueDate).toLocaleDateString('en-GB') : '—'}</span>
-              <span className="print:hidden">
+              <span className="print:hidden relative [&_input]:pl-7">
+                <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400 pointer-events-none z-10" />
                 <DatePicker value={dueDate} onChange={setDueDate} className="!gap-0" />
               </span>
             </div>
-            <div className="flex sm:justify-end items-center gap-2 print:hidden">
-              <span className="text-xs font-medium text-black">Status</span>
-              <select value={status} onChange={(e) => setStatus(e.target.value)} className="text-xs border border-zinc-200 rounded-md px-2 py-1 bg-white">
-                {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </div>
+          </div>
+        </div>
+
+        {/* Admin-only document configuration - grouped, not scattered */}
+        <div className="kf-card rounded-2xl mb-6 print:hidden">
+          <p className="text-[10px] uppercase tracking-wide text-zinc-500 font-semibold mb-3">Document settings</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <SelectField label="Status" value={status} onChange={setStatus} options={STATUS_OPTIONS} />
+            <SelectField label="Currency" value={currency} onChange={setCurrency} options={CURRENCY_OPTIONS} />
+            <SelectField label="Accent color" value={accentColor} onChange={setAccentColor} options={ACCENT_COLOR_OPTIONS} />
           </div>
         </div>
 
         <table className="w-full mb-6">
           <thead>
-            <tr className="bg-[var(--kf-green)] text-white text-xs">
-              <th className="text-left font-semibold py-2 px-3 w-16 rounded-l-md">QTY</th>
-              <th className="text-left font-semibold py-2 px-3">Description</th>
-              <th className="text-right font-semibold py-2 px-3 w-32">Unit price</th>
-              <th className="text-right font-semibold py-2 px-3 w-32 rounded-r-md">Amount</th>
+            <tr className="text-white text-xs" style={{ backgroundColor: accent }}>
+              <th className="text-left font-semibold py-2.5 px-3 w-16 rounded-l-md">QTY</th>
+              <th className="text-left font-semibold py-2.5 px-3">Description</th>
+              <th className="text-right font-semibold py-2.5 px-3 w-36">Unit price</th>
+              <th className="text-right font-semibold py-2.5 px-3 w-36 rounded-r-md">Amount</th>
               <th className="w-8 print:hidden" />
             </tr>
           </thead>
           <tbody>
             {items.map((it, i) => (
               <tr key={i} className="border-b border-[var(--kf-border)] text-sm">
-                <td className="py-2 px-3">
+                <td className="py-2.5 px-3">
                   <input type="number" min={0} value={it.quantity} onChange={(e) => updateItem(i, { quantity: Number(e.target.value) })} className="w-full bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
                 </td>
-                <td className="py-2 px-3">
+                <td className="py-2.5 px-3">
                   <input value={it.description} onChange={(e) => updateItem(i, { description: e.target.value })} placeholder="Item description" className="w-full bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
                 </td>
-                <td className="py-2 px-3">
-                  <input type="number" min={0} value={it.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} className="w-full text-right bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded" />
+                <td className="py-2.5 px-3">
+                  <div className="relative print:static">
+                    <DollarSign className="print:hidden absolute left-1 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400 pointer-events-none" />
+                    <input type="number" min={0} value={it.unitPrice} onChange={(e) => updateItem(i, { unitPrice: Number(e.target.value) })} className="w-full text-right bg-transparent print:border-none border-0 focus:ring-1 focus:ring-[var(--kf-green)] rounded pl-4 print:pl-0" />
+                  </div>
                 </td>
-                <td className="py-2 px-3 text-right font-medium">{formatMoney((Number(it.quantity) || 0) * (Number(it.unitPrice) || 0))}</td>
+                <td className="py-2.5 px-3 text-right font-medium">{money((Number(it.quantity) || 0) * (Number(it.unitPrice) || 0))}</td>
                 <td className="print:hidden">
                   <button type="button" onClick={() => setItems((p) => p.filter((_, idx) => idx !== i))} className="p-1 text-zinc-400 hover:text-red-600 transition" aria-label="Remove item">
                     <X className="w-3.5 h-3.5" />
@@ -287,49 +366,89 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
                 </td>
               </tr>
             ))}
-            {toolsTotal > 0 && (
+            {oneTimeToolsTotal > 0 && (
               <tr className="border-b border-[var(--kf-border)] text-sm">
-                <td className="py-2 px-3">1</td>
-                <td className="py-2 px-3" title={`Admin only - ask if you want the breakdown:\n${pricedTools.map((t) => `${t.name} (${formatMoney(priceFor(t))})`).join('\n')}`}>
+                <td className="py-2.5 px-3">1</td>
+                <td
+                  className="py-2.5 px-3"
+                  title={`Admin only - ask if you want the breakdown:\n${toolsPricing.filter((t) => t.duration === 'one_time').map((t) => `${t.name} (${money(t.price)})`).join('\n')}`}
+                >
                   Tools &amp; Equipment
                 </td>
-                <td className="py-2 px-3 text-right">{formatMoney(toolsTotal)}</td>
-                <td className="py-2 px-3 text-right font-medium">{formatMoney(toolsTotal)}</td>
+                <td className="py-2.5 px-3 text-right">{money(oneTimeToolsTotal)}</td>
+                <td className="py-2.5 px-3 text-right font-medium">{money(oneTimeToolsTotal)}</td>
                 <td className="print:hidden" />
               </tr>
             )}
           </tbody>
         </table>
 
-        <div className="print:hidden flex items-center justify-between mb-6">
+        <div className="print:hidden mb-6">
           <button type="button" onClick={() => setItems((p) => [...p, blankItem()])} className="text-xs text-[var(--kf-green)] hover:underline flex items-center gap-1">
             <Plus className="w-3.5 h-3.5" /> Add line item
           </button>
-          {pricedTools.length > 0 && (
-            <label className="flex items-center gap-2 text-xs text-zinc-600">
-              Include Tools &amp; Equipment ({formatMoney(pricedTools.reduce((s, t) => s + priceFor(t), 0))})
-              <Toggle checked={includeToolsRow} onChange={setIncludeToolsRow} />
-            </label>
-          )}
         </div>
+
+        {/* Admin-only editable pricing for the project's selected tools - tool
+            names never appear on the exported/printed quote, only here. */}
+        {toolsPricing.length > 0 && (
+          <div className="print:hidden mb-6 border border-[var(--kf-border)] rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[10px] uppercase tracking-wide text-black font-semibold">Tools &amp; equipment pricing (internal)</p>
+              <ToggleSwitch checked={includeToolsRow} onChange={setIncludeToolsRow}>Include in quote</ToggleSwitch>
+            </div>
+            <div className="space-y-2">
+              {toolsPricing.map((t, i) => (
+                <div key={t.name} className="flex items-center gap-2">
+                  <span className="flex-1 text-xs text-black truncate">{t.name}</span>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-zinc-400 pointer-events-none" />
+                    <input
+                      type="number"
+                      min={0}
+                      value={t.price}
+                      onChange={(e) => updateTool(i, { price: Number(e.target.value) })}
+                      className="kf-modal-input h-8 text-xs w-28 pl-6"
+                    />
+                  </div>
+                  <select
+                    value={t.duration}
+                    onChange={(e) => updateTool(i, { duration: e.target.value as ToolPricing['duration'] })}
+                    className="kf-modal-input h-8 text-xs w-28"
+                  >
+                    <option value="one_time">One-time</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="annual">Annual</option>
+                  </select>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-zinc-400">
+              Never itemised by name on the exported quote - one-time tools fold into &ldquo;Tools &amp; Equipment&rdquo; above, recurring ones into the payment schedule below.
+            </p>
+          </div>
+        )}
 
         <div className="flex justify-end mb-8">
           <div className="w-full sm:w-64 space-y-1.5 text-sm">
             <div className="flex justify-between text-black">
               <span>Subtotal</span>
-              <span>{formatMoney(subtotal)}</span>
+              <span>{money(subtotal)}</span>
             </div>
             <div className="flex justify-between items-center text-black">
               <span className="flex items-center gap-1.5">
                 Tax
-                <input type="number" min={0} max={100} value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="print:hidden w-12 bg-transparent border-0 border-b border-zinc-200 text-xs text-center" />
+                <span className="print:hidden relative inline-flex items-center">
+                  <Percent className="absolute left-1 w-2.5 h-2.5 text-zinc-400 pointer-events-none" />
+                  <input type="number" min={0} max={100} value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="w-14 pl-4 bg-transparent border-0 border-b border-zinc-200 text-xs text-center" />
+                </span>
                 <span className="print:inline hidden">({taxRate}</span>%<span className="print:inline hidden">)</span>
               </span>
-              <span>{formatMoney(tax)}</span>
+              <span>{money(tax)}</span>
             </div>
-            <div className="flex justify-between font-bold text-base text-[var(--kf-green)] pt-1.5 border-t border-[var(--kf-border)]">
+            <div className="flex justify-between font-bold text-base pt-1.5 border-t border-[var(--kf-border)]" style={{ color: accent }}>
               <span>Total</span>
-              <span>{formatMoney(total)}</span>
+              <span>{money(total)}</span>
             </div>
           </div>
         </div>
@@ -342,40 +461,55 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
             <span className="flex items-center gap-2 text-black">
               Deposit to begin work
               <span className="print:hidden inline-flex items-center gap-1">
-                (<input type="number" min={0} max={100} value={depositPercent} onChange={(e) => setDepositPercent(e.target.value)} className="w-10 bg-transparent border-0 border-b border-zinc-200 text-xs text-center" />%)
-                <Toggle checked={depositEnabled} onChange={setDepositEnabled} />
+                (
+                <span className="relative inline-flex items-center">
+                  <Percent className="absolute left-1 w-2.5 h-2.5 text-zinc-400 pointer-events-none" />
+                  <input type="number" min={0} max={100} value={depositPercent} onChange={(e) => setDepositPercent(e.target.value)} className="w-12 pl-4 bg-transparent border-0 border-b border-zinc-200 text-xs text-center" />
+                </span>
+                %)
+                <ToggleSwitch checked={depositEnabled} onChange={setDepositEnabled} />
               </span>
               <span className="print:inline hidden">({depositPercent}%)</span>
             </span>
-            {depositEnabled && <span className="font-medium text-black">{formatMoney(depositAmount)}</span>}
+            {depositEnabled && <span className="font-medium text-black">{money(depositAmount)}</span>}
           </div>
           {depositEnabled && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-black">Balance on delivery</span>
-              <span className="font-medium text-black">{formatMoney(balanceAmount)}</span>
+              <span className="font-medium text-black">{money(balanceAmount)}</span>
             </div>
           )}
           <div className="flex items-center justify-between text-sm pt-2 border-t border-[var(--kf-border)]">
             <span className="flex items-center gap-2 text-black">
               Monthly maintenance (after 30 days free)
               <span className="print:hidden">
-                <Toggle checked={maintenanceEnabled} onChange={setMaintenanceEnabled} />
+                <ToggleSwitch checked={maintenanceEnabled} onChange={setMaintenanceEnabled} />
               </span>
             </span>
             {maintenanceEnabled && (
               <span className="font-medium text-black flex items-center gap-1">
-                <span className="print:hidden">KES</span>
-                <input type="number" min={0} value={maintenanceFee} onChange={(e) => setMaintenanceFee(e.target.value)} className="print:hidden w-20 bg-transparent border-0 border-b border-zinc-200 text-right" />
-                <span className="print:inline hidden">{formatMoney(Number(maintenanceFee))}</span>
+                <span className="print:hidden">{currency}</span>
+                <span className="print:hidden relative inline-flex items-center">
+                  <DollarSign className="absolute left-1 w-3 h-3 text-zinc-400 pointer-events-none" />
+                  <input type="number" min={0} value={maintenanceFee} onChange={(e) => setMaintenanceFee(e.target.value)} className="w-20 pl-4 bg-transparent border-0 border-b border-zinc-200 text-right" />
+                </span>
+                <span className="print:inline hidden">{money(Number(maintenanceFee))}</span>
                 <span>/mo</span>
               </span>
             )}
           </div>
-        </div>
-
-        {/* Standing policy - always shown, never toggled off */}
-        <div className="mb-8 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
-          <p className="text-xs font-semibold text-amber-900">New features requested outside this scope require a separate quote and invoice.</p>
+          {recurringMonthlyTotal > 0 && (
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-[var(--kf-border)]">
+              <span className="text-black">Recurring tool costs</span>
+              <span className="font-medium text-black">{money(recurringMonthlyTotal)}/mo</span>
+            </div>
+          )}
+          {recurringAnnualTotal > 0 && (
+            <div className="flex items-center justify-between text-sm pt-2 border-t border-[var(--kf-border)]">
+              <span className="text-black">Annual tool costs</span>
+              <span className="font-medium text-black">{money(recurringAnnualTotal)}/yr</span>
+            </div>
+          )}
         </div>
 
         <div>
@@ -388,7 +522,13 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
       </div>
 
       <div className="max-w-3xl mx-auto print:hidden">
-        <TextAreaField label="Internal notes (not shown on the exported quote)" rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextAreaField
+          label="Internal notes (not shown on the exported quote)"
+          rows={4}
+          placeholder="Anything worth remembering about this quote - client questions, negotiation notes, etc."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+        />
       </div>
     </div>
   )
@@ -396,23 +536,69 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
 
 function MetaRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex sm:justify-end items-center gap-2">
+    <div className="flex md:justify-end items-center gap-2">
       <span className="text-xs font-medium text-black">{label}</span>
       <span className="text-sm text-black">{value}</span>
     </div>
   )
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function ContactField({
+  icon: Icon,
+  type,
+  value,
+  onChange,
+  placeholder,
+}: {
+  icon: LucideIcon
+  type: string
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+}) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={cn('relative w-8 h-[18px] rounded-full transition-colors shrink-0', checked ? 'bg-[var(--kf-green)]' : 'bg-zinc-200')}
-    >
-      <span className={cn('absolute top-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform', checked ? 'translate-x-[16px]' : 'translate-x-[2px]')} />
-    </button>
+    <div className="flex items-center gap-1.5">
+      <Icon className="print:hidden w-3 h-3 text-zinc-400 shrink-0" />
+      <span className="print:inline hidden text-xs text-black">{value || placeholder}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="print:hidden w-full text-xs text-black bg-transparent border-0 border-b border-transparent focus:border-zinc-300 outline-none transition-colors"
+      />
+    </div>
+  )
+}
+
+/** Preline-style toggle switch: a native checkbox + label, styled with the
+ * Tailwind peer-checked pattern - gives click-anywhere-on-label toggling and
+ * correct baseline alignment with adjacent text for free, unlike a custom
+ * <button role="switch">. Pass children for a labelled switch, omit for a
+ * bare one used inline next to existing text. */
+function ToggleSwitch({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  children?: React.ReactNode
+}) {
+  return (
+    <label className="inline-flex items-center gap-2 cursor-pointer select-none align-middle">
+      <span className="relative inline-flex w-8 h-[18px] shrink-0">
+        <input
+          type="checkbox"
+          role="switch"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          className="peer sr-only"
+        />
+        <span className="absolute inset-0 rounded-full bg-zinc-200 peer-checked:bg-[var(--kf-green)] transition-colors duration-200 pointer-events-none" />
+        <span className="absolute top-[2px] left-[2px] w-[14px] h-[14px] bg-white rounded-full shadow transition-transform duration-200 peer-checked:translate-x-[16px] pointer-events-none" />
+      </span>
+      {children && <span className="text-xs text-zinc-600">{children}</span>}
+    </label>
   )
 }

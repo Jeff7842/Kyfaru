@@ -71,6 +71,20 @@
       "when": 1789389742359,
       "tag": "0009_rich_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1789395019666,
+      "tag": "0010_handy_arclight",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1789395252624,
+      "tag": "0011_overjoyed_monster_badoon",
+      "breakpoints": true
     }
   ]
 }

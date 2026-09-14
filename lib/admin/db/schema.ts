@@ -369,6 +369,15 @@ export const quotes = pgTable(
     dueDate: timestamp('due_date'),
     lineItems: jsonb('line_items').notNull(), // [{ description, quantity, unitPrice }]
     taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0'), // percentage, e.g. 16.00
+    currency: text('currency').notNull().default('KES'),
+    accentColor: text('accent_color').notNull().default('green'), // green|blue|orange|purple - see ACCENT_COLORS
+    contactEmail: text('contact_email').notNull().default('info@kyfaru.com'),
+    contactPhone: text('contact_phone').notNull().default('+254 705 256 443'),
+    // Editable per-quote override of the project's selected tools' pricing -
+    // seeded from lib/admin/constants/tech-catalog.ts's priceFor() the first
+    // time the quote is generated, then freely editable here without touching
+    // the project's own tools list (which is about *which* tools, not price).
+    toolsPricing: jsonb('tools_pricing'), // [{ name, price, duration: 'monthly'|'one_time'|'annual' }]
     // System rows: computed from other data, not hand-typed like lineItems -
     // each is on by default and can be toggled off per quote.
     includeToolsRow: boolean('include_tools_row').notNull().default(true),

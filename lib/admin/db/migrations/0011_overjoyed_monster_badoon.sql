@@ -1,0 +1,2 @@
+ALTER TABLE "quotes" ADD COLUMN "contact_email" text DEFAULT 'info@kyfaru.com' NOT NULL;--> statement-breakpoint
+ALTER TABLE "quotes" ADD COLUMN "contact_phone" text DEFAULT '+254 705 256 443' NOT NULL;

@@ -12,6 +12,7 @@ import StackInput from '@/components/admin/shared/StackInput'
 import VerticalStepper, { type ActivityGroup } from '@/components/admin/projects/VerticalStepper'
 import { kfToast } from '@/lib/admin/toast'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
+import { useRegisterNavigationGuard } from '@/hooks/useNavigationGuard'
 import { PAGE_TYPE_OPTIONS } from '@/lib/admin/constants/page-types'
 import {
   emptyProjectRequirements,
@@ -61,6 +62,7 @@ export default function ProjectDetailsView({ projectId, initialProject }: Props)
   const isDirty = JSON.stringify(form) !== snapshotRef.current
   const goToList = () => router.push('/admin/projects')
   const requestClose = useConfirmClose(isDirty, goToList)
+  useRegisterNavigationGuard(isDirty)
 
   useEffect(() => {
     if (!isDirty) return

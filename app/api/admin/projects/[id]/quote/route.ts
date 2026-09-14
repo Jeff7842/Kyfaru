@@ -4,26 +4,44 @@ import { db } from '@/lib/admin/db'
 import { quotes, projects } from '@/lib/admin/db/schema'
 import { requireRole, type Role } from '@/lib/admin/permissions'
 import { logAudit } from '@/lib/admin/audit'
+import { priceFor, type StackItem } from '@/lib/admin/constants/tech-catalog'
+import type { ProjectRequirementsDoc } from '@/lib/admin/types/project-requirements'
+import type { ToolPricing } from '@/lib/admin/docs/quote-pdf'
 import { eq, sql } from 'drizzle-orm'
 
 const DEFAULT_TERMS = 'This quote is valid for 14 days from the quote date. First 30 days of maintenance after delivery are free; a monthly maintenance fee applies thereafter. Any feature requested outside this scope requires a separate quote and invoice.'
 
-export async function getOrCreateQuote(projectId: string, clientId: string, userId: string) {
-  const existing = await db.query.quotes.findFirst({ where: eq(quotes.projectId, projectId) })
+interface ProjectForQuote {
+  id: string
+  clientId: string
+  scopeDocument: unknown
+}
+
+export async function getOrCreateQuote(project: ProjectForQuote, userId: string) {
+  const existing = await db.query.quotes.findFirst({ where: eq(quotes.projectId, project.id) })
   if (existing) return existing
 
   const seq = await db.execute<{ n: number }>(sql`SELECT nextval('quote_number_seq') AS n`)
   const quoteNumber = `QT-${String(seq.rows[0].n).padStart(5, '0')}`
   const dueDate = new Date(Date.now() + 14 * 86400000)
 
+  // Seed the editable per-quote pricing table from the project's selected
+  // tools + the catalog's standard fee - a one-time snapshot the admin then
+  // freely edits (price, duration) without touching the project's tools list.
+  const projectTools = ((project.scopeDocument as ProjectRequirementsDoc | null)?.tools ?? []) as StackItem[]
+  const toolsPricing: ToolPricing[] = projectTools
+    .filter((t) => priceFor(t) > 0)
+    .map((t) => ({ name: t.name, price: priceFor(t), duration: 'one_time' as const }))
+
   const [created] = await db
     .insert(quotes)
     .values({
       quoteNumber,
-      projectId,
-      clientId,
+      projectId: project.id,
+      clientId: project.clientId,
       dueDate,
       lineItems: [],
+      toolsPricing,
       termsAndConditions: DEFAULT_TERMS,
       createdById: userId,
     })
@@ -39,7 +57,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const project = await db.query.projects.findFirst({ where: eq(projects.id, id), with: { client: true } })
   if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 })
 
-  const quote = await getOrCreateQuote(id, project.clientId, session.user.id as string)
+  const quote = await getOrCreateQuote(project, session.user.id as string)
   return NextResponse.json({ quote, project })
 }
 
@@ -54,8 +72,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const body = await req.json()
   const editable = [
-    'lineItems', 'taxRate', 'termsAndConditions', 'notes', 'status',
+    'lineItems', 'taxRate', 'currency', 'accentColor', 'toolsPricing', 'termsAndConditions', 'notes', 'status',
     'includeToolsRow', 'depositEnabled', 'depositPercent', 'maintenanceEnabled', 'maintenanceFee',
+    'contactEmail', 'contactPhone',
   ]
   const updates: Record<string, unknown> = { updatedAt: new Date() }
   for (const k of editable) if (body[k] !== undefined) updates[k] = body[k]

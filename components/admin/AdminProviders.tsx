@@ -6,6 +6,7 @@ import { useState } from 'react'
 import KfToaster from '@/components/admin/toast/KfToaster'
 import { toasterRef } from '@/lib/admin/toast'
 import { ConfirmProvider } from '@/hooks/useConfirm'
+import { NavigationGuardProvider } from '@/hooks/useNavigationGuard'
 
 export default function AdminProviders({
   children,
@@ -28,7 +29,9 @@ export default function AdminProviders({
   return (
     <SessionProvider>
       <QueryClientProvider client={qc}>
-        <ConfirmProvider>{children}</ConfirmProvider>
+        <ConfirmProvider>
+          <NavigationGuardProvider>{children}</NavigationGuardProvider>
+        </ConfirmProvider>
         <KfToaster ref={toasterRef} defaultPosition="bottom-right" />
       </QueryClientProvider>
     </SessionProvider>

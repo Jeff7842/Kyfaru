@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import GuardedLink from '@/components/admin/shared/GuardedLink'
 import { usePathname } from 'next/navigation'
 import { useUI } from '@/store/admin/ui'
 import { useSession } from 'next-auth/react'
@@ -90,7 +90,7 @@ export default function MobileNav() {
               item.exact ? pathname === item.href : pathname.startsWith(item.href)
             const Icon = item.icon
             return (
-              <Link
+              <GuardedLink
                 key={item.href}
                 href={item.href}
                 className={cn(
@@ -102,7 +102,7 @@ export default function MobileNav() {
               >
                 <Icon className="w-[18px] h-[18px]" />
                 {item.label}
-              </Link>
+              </GuardedLink>
             )
           })}
         </nav>

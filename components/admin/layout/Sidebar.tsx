@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
+import GuardedLink from '@/components/admin/shared/GuardedLink'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -76,7 +76,7 @@ export default function Sidebar() {
     >
       {/* Logo */}
       <div className="flex items-center justify-between h-16 px-4 border-b border-white/5">
-        <Link href="/admin" className="flex items-center gap-2">
+        <GuardedLink href="/admin" className="flex items-center gap-2">
           <div className="w-9 h-9 relative shrink-0">
             <Image
               src="/Logos/Kyfaru Logo Filled-05.png"
@@ -94,7 +94,7 @@ export default function Sidebar() {
               Kyfaru
             </span>
           )}
-        </Link>
+        </GuardedLink>
         <button
           onClick={toggleSidebar}
           className="p-1.5 rounded-md hover:bg-white/5 text-zinc-400 hover:text-white"
@@ -114,7 +114,7 @@ export default function Sidebar() {
           const active = isActive(item.href, item.exact)
           const Icon = item.icon
           return (
-            <Link
+            <GuardedLink
               key={item.href}
               href={item.href}
               className={cn(
@@ -128,7 +128,7 @@ export default function Sidebar() {
             >
               <Icon className="w-[18px] h-[18px] shrink-0" />
               {!sidebarCollapsed && <span>{item.label}</span>}
-            </Link>
+            </GuardedLink>
           )
         })}
       </nav>
