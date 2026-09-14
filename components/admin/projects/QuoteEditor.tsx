@@ -45,19 +45,22 @@ const blankItem = (): LineItem => ({ description: '', quantity: 1, unitPrice: 0 
 
 interface Props {
   projectId: string
+  quoteId: string
   initialProject: ProjectWithClient
+  initialQuote: Quote
 }
 
-export default function QuoteEditor({ projectId, initialProject }: Props) {
+export default function QuoteEditor({ projectId, quoteId, initialProject, initialQuote }: Props) {
   const router = useRouter()
   const qc = useQueryClient()
 
   const { data } = useQuery({
-    queryKey: ['project-quote', projectId],
+    queryKey: ['project-quote', quoteId],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/projects/${projectId}/quote`)
+      const res = await fetch(`/api/admin/projects/${projectId}/quotes/${quoteId}`)
       return res.json() as Promise<{ quote: Quote; project: ProjectWithClient }>
     },
+    initialData: { quote: initialQuote, project: initialProject },
   })
   const quote = data?.quote
   const project = data?.project ?? initialProject
@@ -136,7 +139,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
   }
 
   const isDirty = buildSnapshot() !== snapshotRef.current
-  const goBack = () => router.push('/admin/projects')
+  const goBack = () => router.push(`/admin/projects/${projectId}/quote`)
   const requestClose = useConfirmClose(isDirty, goBack)
   useRegisterNavigationGuard(isDirty)
 
@@ -176,7 +179,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
   async function save(): Promise<boolean> {
     setSaving(true)
     try {
-      const res = await fetch(`/api/admin/projects/${projectId}/quote`, {
+      const res = await fetch(`/api/admin/projects/${projectId}/quotes/${quoteId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -205,7 +208,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
         return false
       }
       snapshotRef.current = buildSnapshot()
-      qc.invalidateQueries({ queryKey: ['project-quote', projectId] })
+      qc.invalidateQueries({ queryKey: ['project-quote', quoteId] })
       return true
     } catch {
       kfToast.error('Something went wrong')
@@ -223,7 +226,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     setExporting(true)
     try {
       if (isDirty && !(await save())) return
-      const res = await fetch(`/api/admin/projects/${projectId}/quote/pdf`)
+      const res = await fetch(`/api/admin/projects/${projectId}/quotes/${quoteId}/pdf`)
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
         kfToast.error(errData.error ?? 'Export failed')
@@ -244,7 +247,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
     setPreviewing(true)
     try {
       if (isDirty && !(await save())) return
-      window.open(`/api/admin/projects/${projectId}/quote/pdf?preview=1`, '_blank')
+      window.open(`/api/admin/projects/${projectId}/quotes/${quoteId}/pdf?preview=1`, '_blank')
     } finally {
       setPreviewing(false)
     }
@@ -258,7 +261,7 @@ export default function QuoteEditor({ projectId, initialProject }: Props) {
           subtitle={project.client?.name}
           actions={
             <button onClick={requestClose} className="text-xs text-white/80 hover:text-white underline underline-offset-2">
-              Back to projects
+              Back to quotes
             </button>
           }
         />

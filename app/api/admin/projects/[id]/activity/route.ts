@@ -25,22 +25,24 @@ function dayLabel(d: Date): string {
 }
 
 // A project's timeline includes its own audit trail plus that of invoices
-// billed against it and its quote - "Invoice INV-0004 marked as paid" is the
-// whole point of the stepper, and neither carries a separate entityType view.
+// billed against it and any of its quotes (a project can have several over
+// time) - "Invoice INV-0004 marked as paid" is the whole point of the
+// stepper, and neither carries a separate entityType view of their own.
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const [projectInvoices, projectQuote] = await Promise.all([
+  const [projectInvoices, projectQuotes] = await Promise.all([
     db.select({ id: invoices.id }).from(invoices).where(eq(invoices.projectId, id)),
-    db.query.quotes.findFirst({ where: eq(quotes.projectId, id), columns: { id: true } }),
+    db.select({ id: quotes.id }).from(quotes).where(eq(quotes.projectId, id)),
   ])
   const invoiceIds = projectInvoices.map((r) => r.id)
+  const quoteIds = projectQuotes.map((r) => r.id)
 
   const conds = [and(eq(auditLogs.entityType, 'project'), eq(auditLogs.entityId, id))]
   if (invoiceIds.length) conds.push(and(eq(auditLogs.entityType, 'invoice'), inArray(auditLogs.entityId, invoiceIds)))
-  if (projectQuote) conds.push(and(eq(auditLogs.entityType, 'quote'), eq(auditLogs.entityId, projectQuote.id)))
+  if (quoteIds.length) conds.push(and(eq(auditLogs.entityType, 'quote'), inArray(auditLogs.entityId, quoteIds)))
 
   const rows = await db
     .select()

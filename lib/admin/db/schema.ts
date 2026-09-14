@@ -399,6 +399,7 @@ export const quotes = pgTable(
   },
   (t) => [
     index('quotes_client_idx').on(t.clientId),
+    index('quotes_project_idx').on(t.projectId),
   ],
 )
 
@@ -668,7 +669,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   milestones: many(projectMilestones),
   invoices: many(invoices),
-  quote: one(quotes, { fields: [projects.id], references: [quotes.projectId] }),
+  quotes: many(quotes),
   expenses: many(expenses),
   files: many(projectFiles),
   calendarEvents: many(calendarEvents),

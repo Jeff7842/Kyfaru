@@ -1,26 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/admin/auth'
 import { db } from '@/lib/admin/db'
-import { projects } from '@/lib/admin/db/schema'
-import { eq } from 'drizzle-orm'
+import { projects, quotes } from '@/lib/admin/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { buildQuotePdf, type QuoteLineItem, type ToolPricing } from '@/lib/admin/docs/quote-pdf'
-import { getOrCreateQuote } from '@/app/api/admin/projects/[id]/quote/route'
 
 export const runtime = 'nodejs'
 
 const fmtDate = (d?: Date | string | null) => (d ? new Date(d).toLocaleDateString('en-GB') : '')
 const firstWord = (s: string | null | undefined) => (s ?? '').trim().split(/\s+/)[0] || 'Document'
 
-export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string; quoteId: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const preview = new URL(req.url).searchParams.get('preview') === '1'
-  const { id } = await params
-  const project = await db.query.projects.findFirst({ where: eq(projects.id, id), with: { client: true } })
+  const { id, quoteId } = await params
+  const [project, quote] = await Promise.all([
+    db.query.projects.findFirst({ where: eq(projects.id, id), with: { client: true } }),
+    db.query.quotes.findFirst({ where: and(eq(quotes.id, quoteId), eq(quotes.projectId, id)) }),
+  ])
   if (!project) return NextResponse.json({ error: 'Project not found' }, { status: 404 })
-
-  const quote = await getOrCreateQuote(project, session.user.id as string)
+  if (!quote) return NextResponse.json({ error: 'Quote not found' }, { status: 404 })
 
   // The editable per-quote tools pricing table - one-time tools fold into the
   // main line-items total as one generic "Tools & Equipment" row, monthly/

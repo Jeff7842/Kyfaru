@@ -220,10 +220,10 @@ summaryRow(`Tax (${data.taxRate}%)`, money(tax), {
 })
   page.drawLine({ start: { x: col.price, y: y + 10 }, end: { x: W - MARGIN, y: y + 10 }, thickness: 1, color: ACCENT, })
   // Extra vertical gap
-  y -= 20
+  y -= 14
   summaryRow('Total', money(total), {
   bold: true,
-  size: 12,
+  size: 16,
   labelColor: ACCENT,
   valueColor: ACCENT,
 })
