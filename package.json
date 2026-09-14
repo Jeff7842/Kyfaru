@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.2",
+    "@fontsource/merriweather": "^5.3.0",
     "@fontsource/roboto": "^5.3.0",
     "@fontsource/roboto-mono": "^5.3.0",
     "@fullcalendar/core": "^6.1.20",

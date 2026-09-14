@@ -20,6 +20,10 @@ export interface InvoiceDocData {
   paymentMpesa?: string // optional 3rd payment line, e.g. "Mpesa +254705256443"
   clientName?: string
   items: InvoiceLineItem[]
+  /** Font used for the line-item row text specifically - 'mono' (Roboto
+   * Mono, the default, matching the rest of the invoice's dynamic values) or
+   * 'serif' (Merriweather, for a more traditional-invoice look). */
+  itemFont?: 'mono' | 'serif'
   discount?: string
   taxes?: string
   total: string
@@ -39,6 +43,8 @@ const ROBOTO_REGULAR = fontFile('roboto-latin-400-normal.woff')
 const ROBOTO_BOLD = fontFile('roboto-latin-700-normal.woff')
 const ROBOTO_MONO_REGULAR = fontFile('roboto-mono-latin-400-normal.woff')
 const ROBOTO_MONO_BOLD = fontFile('roboto-mono-latin-700-normal.woff')
+const MERRIWEATHER_REGULAR = fontFile('merriweather-latin-400-normal.woff')
+const MERRIWEATHER_BOLD = fontFile('merriweather-latin-700-normal.woff')
 
 // Fractional coordinates (x, y as fraction of page width/height, y measured from TOP).
 // Calibrated against public/invoice/Invoice Template.png (2552×3579); no external
@@ -68,12 +74,14 @@ const H = 841.89
 
 /** Builds the branded invoice PDF by overlaying data on the Kyfaru artwork. */
 export async function buildInvoicePdf(data: InvoiceDocData): Promise<Uint8Array> {
-  const [pngBytes, robotoBytes, robotoBoldBytes, monoBytes, monoBoldBytes] = await Promise.all([
+  const [pngBytes, robotoBytes, robotoBoldBytes, monoBytes, monoBoldBytes, serifBytes, serifBoldBytes] = await Promise.all([
     readFile(TEMPLATE),
     readFile(ROBOTO_REGULAR),
     readFile(ROBOTO_BOLD),
     readFile(ROBOTO_MONO_REGULAR),
     readFile(ROBOTO_MONO_BOLD),
+    readFile(MERRIWEATHER_REGULAR),
+    readFile(MERRIWEATHER_BOLD),
   ])
 
   const pdf = await PDFDocument.create()
@@ -88,9 +96,15 @@ export async function buildInvoicePdf(data: InvoiceDocData): Promise<Uint8Array>
   // the artwork's own convention for static headings.
   const roboto = await pdf.embedFont(robotoBytes, { subset: true })
   const robotoBold = await pdf.embedFont(robotoBoldBytes, { subset: true })
+  // Optional alternate for the line-item row text specifically (data.itemFont).
+  const serif = await pdf.embedFont(serifBytes, { subset: true })
+  const serifBold = await pdf.embedFont(serifBoldBytes, { subset: true })
+  const itemFont = data.itemFont === 'serif' ? serif : mono
+  const itemFontBold = data.itemFont === 'serif' ? serifBold : monoBold
 
   const ink = rgb(0.18, 0.2, 0.21)
   const green = rgb(0.06, 0.45, 0.32)
+  const line = rgb(0.87, 0.88, 0.89)
 
   function newPage() {
     const page = pdf.addPage([W, H])
@@ -122,6 +136,13 @@ export async function buildInvoicePdf(data: InvoiceDocData): Promise<Uint8Array>
   draw(data.date, C.date.x, C.date.yTop, { size: 8 })
   if (data.paid) draw('PAID', C.paidStamp.x, C.paidStamp.yTop, { size: 12, bold: true, color: green })
 
+  // Item-row cells use data.itemFont (mono by default, or the Merriweather
+  // serif alternate) rather than draw()'s fixed mono/roboto choice.
+  const drawItem = (text: string, xFrac: number, yTopFrac: number, bold = false) => {
+    const { x, y } = at(xFrac, yTopFrac)
+    page.drawText(text ?? '', { x, y, size: 8, font: bold ? itemFontBold : itemFont, color: ink })
+  }
+
   const items = data.items
   let row = 0
   let pageFirstYTop = C.rows.firstYTop
@@ -140,10 +161,18 @@ export async function buildInvoicePdf(data: InvoiceDocData): Promise<Uint8Array>
       row = 0
     }
     const yTop = pageFirstYTop + row * C.rows.pitch
-    draw(item.product, C.col.product, yTop)
-    draw(item.price, C.col.price, yTop)
-    draw(String(item.quantity), C.col.quantity, yTop)
-    draw(item.total, C.col.total, yTop)
+    drawItem(item.product, C.col.product, yTop)
+    drawItem(item.price, C.col.price, yTop)
+    drawItem(String(item.quantity), C.col.quantity, yTop)
+    drawItem(item.total, C.col.total, yTop)
+    // Separator line under each item row for visual separation between entries.
+    const { y: lineY } = at(0, yTop + C.rows.pitch - 0.012)
+    page.drawLine({
+      start: { x: C.col.product * W, y: lineY },
+      end: { x: 0.91 * W, y: lineY },
+      thickness: 0.5,
+      color: line,
+    })
     row += 1
   }
 

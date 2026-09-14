@@ -42,6 +42,7 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
   const [vatAmount, setVatAmount] = useState('0')
   const [notes, setNotes] = useState('')
   const [items, setItems] = useState<LineItem[]>([blankItem()])
+  const [itemFont, setItemFont] = useState('mono')
   const [saving, setSaving] = useState(false)
   const snapshotRef = useRef('')
 
@@ -66,20 +67,22 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
       const nextNotes = invoice?.notes ?? ''
       const li = (invoice?.lineItems as LineItem[] | undefined) ?? null
       const nextItems = li && li.length ? li : [blankItem()]
+      const nextItemFont = invoice?.itemFont ?? 'mono'
       setProjectId(nextProjectId)
       setStatus(nextStatus)
       setDueDate(nextDueDate)
       setVatAmount(nextVat)
       setNotes(nextNotes)
       setItems(nextItems)
+      setItemFont(nextItemFont)
       snapshotRef.current = JSON.stringify({
         projectId: nextProjectId, status: nextStatus, dueDate: nextDueDate,
-        vatAmount: nextVat, notes: nextNotes, items: nextItems,
+        vatAmount: nextVat, notes: nextNotes, items: nextItems, itemFont: nextItemFont,
       })
     }
   }, [open, invoice])
 
-  const isDirty = JSON.stringify({ projectId, status, dueDate, vatAmount, notes, items }) !== snapshotRef.current
+  const isDirty = JSON.stringify({ projectId, status, dueDate, vatAmount, notes, items, itemFont }) !== snapshotRef.current
   const requestClose = useConfirmClose(isDirty, onClose)
 
   const subtotal = useMemo(
@@ -112,6 +115,7 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
         status,
         dueDate,
         lineItems: validItems,
+        itemFont,
         notes,
         ...(status !== 'draft' ? { issuedAt: new Date().toISOString() } : {}),
         ...(status === 'paid' && !invoice?.paidAt ? { paidAt: new Date().toISOString() } : {}),
@@ -178,6 +182,16 @@ export default function InvoiceFormDrawer({ open, onClose, invoice, onSaved }: P
             ))}
           </div>
         </div>
+
+        <SelectField
+          label="Item font"
+          value={itemFont}
+          onChange={setItemFont}
+          options={[
+            { value: 'mono', label: 'Roboto Mono (default)' },
+            { value: 'serif', label: 'Merriweather (serif)' },
+          ]}
+        />
 
         <div className="grid grid-cols-2 gap-3">
           <TextField label="VAT amount (KES)" type="number" value={vatAmount} onChange={(e) => setVatAmount(e.target.value)} />

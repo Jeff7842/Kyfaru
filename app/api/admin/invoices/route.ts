@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
       paidAt,
       dueDate: new Date(body.dueDate),
       lineItems: body.lineItems ?? [],
+      itemFont: body.itemFont === 'serif' ? 'serif' : 'mono',
       notes: body.notes ?? null,
       createdById: session.user.id as string,
     })

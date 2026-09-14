@@ -64,6 +64,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     paymentBank: 'I&M Bank',
     clientName: invoice.client?.name,
     items,
+    itemFont: invoice.itemFont === 'serif' ? 'serif' : 'mono',
     taxes: money(Number(invoice.vatAmount) || 0),
     total: money(Number(invoice.amount) || 0),
   })

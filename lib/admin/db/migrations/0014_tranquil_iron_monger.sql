@@ -1,0 +1,1 @@
+ALTER TABLE "invoices" ADD COLUMN "item_font" text DEFAULT 'mono' NOT NULL;

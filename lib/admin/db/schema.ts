@@ -331,6 +331,7 @@ export const invoices = pgTable(
     paymentMethod: text('payment_method'),
     paymentReference: text('payment_reference'),
     lineItems: jsonb('line_items').notNull(),
+    itemFont: text('item_font').notNull().default('mono'), // 'mono' (Roboto Mono) | 'serif' (Merriweather) - see invoice-pdf.ts
     notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),

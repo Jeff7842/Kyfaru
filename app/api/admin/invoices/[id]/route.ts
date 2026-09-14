@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!existing) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
 
   const updates: Record<string, unknown> = { updatedAt: new Date() }
-  for (const k of ['status', 'notes', 'paymentMethod', 'paymentReference', 'lineItems', 'milestoneId']) {
+  for (const k of ['status', 'notes', 'paymentMethod', 'paymentReference', 'lineItems', 'itemFont', 'milestoneId']) {
     if (body[k] !== undefined) updates[k] = body[k]
   }
   if (body.amount !== undefined) updates.amount = String(body.amount)
