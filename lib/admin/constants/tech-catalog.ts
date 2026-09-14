@@ -16,6 +16,8 @@ export type StackCategory =
   | 'caching'
   | 'project-management'
   | 'testing'
+  | 'cms'
+  | 'automation'
   | 'other'
 
 export interface StackItem {
@@ -23,6 +25,11 @@ export interface StackItem {
   category: StackCategory
   custom?: boolean
   note?: string // what this specific tool is used for on this project
+  /** Kyfaru's standard one-time integration fee for this tool, in KES - not
+   * the vendor's own subscription cost. Feeds the quotation's "Tools &
+   * Equipment" line (see QuoteEditor.tsx) as one aggregate figure, never an
+   * itemised tool-by-tool breakdown on the client-facing quote. */
+  defaultPrice?: number
 }
 
 export const CATEGORY_LABEL: Record<StackCategory, string> = {
@@ -41,6 +48,8 @@ export const CATEGORY_LABEL: Record<StackCategory, string> = {
   caching: 'Caching',
   'project-management': 'Project Management',
   testing: 'Testing / QA',
+  cms: 'CMS',
+  automation: 'Automation',
   other: 'Other',
 }
 
@@ -61,6 +70,8 @@ export const CATEGORY_COLOR: Record<StackCategory, string> = {
   caching: 'bg-teal-50 border-teal-300 text-teal-700',
   'project-management': 'bg-purple-50 border-purple-300 text-purple-700',
   testing: 'bg-rose-50 border-rose-300 text-rose-700',
+  cms: 'bg-yellow-50 border-yellow-300 text-yellow-700',
+  automation: 'bg-slate-50 border-slate-300 text-slate-700',
   other: 'bg-zinc-100 border-zinc-300 text-zinc-700',
 }
 
@@ -91,55 +102,55 @@ export const TECH_CATALOG: StackItem[] = [
   { name: 'Drizzle ORM', category: 'database' },
   { name: 'Prisma', category: 'database' },
   // storage
-  { name: 'AWS S3', category: 'storage' },
-  { name: 'Cloudinary', category: 'storage' },
-  { name: 'UploadThing', category: 'storage' },
-  { name: 'Cloudflare R2', category: 'storage' },
+  { name: 'AWS S3', category: 'storage', defaultPrice: 6000 },
+  { name: 'Cloudinary', category: 'storage', defaultPrice: 5000 },
+  { name: 'UploadThing', category: 'storage', defaultPrice: 4000 },
+  { name: 'Cloudflare R2', category: 'storage', defaultPrice: 5000 },
   // security
   { name: 'NextAuth', category: 'security' },
-  { name: 'Auth0', category: 'security' },
-  { name: 'Clerk', category: 'security' },
+  { name: 'Auth0', category: 'security', defaultPrice: 8000 },
+  { name: 'Clerk', category: 'security', defaultPrice: 7000 },
   { name: 'JWT', category: 'security' },
   // devops
-  { name: 'Docker', category: 'devops' },
-  { name: 'Vercel', category: 'devops' },
-  { name: 'GitHub Actions', category: 'devops' },
-  { name: 'Nginx', category: 'devops' },
-  { name: 'VPS', category: 'devops' },
+  { name: 'Docker', category: 'devops', defaultPrice: 6000 },
+  { name: 'Vercel', category: 'devops', defaultPrice: 4000 },
+  { name: 'GitHub Actions', category: 'devops', defaultPrice: 6000 },
+  { name: 'Nginx', category: 'devops', defaultPrice: 5000 },
+  { name: 'VPS', category: 'devops', defaultPrice: 8000 },
   // mobile
   { name: 'React Native', category: 'mobile' },
   { name: 'Flutter', category: 'mobile' },
-  { name: 'Expo', category: 'mobile' },
+  { name: 'Expo', category: 'mobile', defaultPrice: 5000 },
   // ai
   { name: 'OpenAI', category: 'ai' },
   { name: 'Anthropic Claude', category: 'ai' },
   { name: 'LangChain', category: 'ai' },
-  // payment
-  { name: 'M-Pesa Daraja', category: 'payment' },
-  { name: 'Stripe', category: 'payment' },
-  { name: 'PayPal', category: 'payment' },
-  { name: 'PayHero', category: 'payment' },
-  { name: 'Flutterwave', category: 'payment' },
+  // payment - integration fee, not the gateway's own per-transaction cut
+  { name: 'M-Pesa Daraja', category: 'payment', defaultPrice: 15000 },
+  { name: 'Stripe', category: 'payment', defaultPrice: 10000 },
+  { name: 'PayPal', category: 'payment', defaultPrice: 8000 },
+  { name: 'PayHero', category: 'payment', defaultPrice: 10000 },
+  { name: 'Flutterwave', category: 'payment', defaultPrice: 10000 },
   // communication
-  { name: 'Resend', category: 'communication' },
-  { name: 'Twilio', category: 'communication' },
-  { name: 'SendGrid', category: 'communication' },
-  { name: 'WhatsApp Business API', category: 'communication' },
+  { name: 'Resend', category: 'communication', defaultPrice: 5000 },
+  { name: 'Twilio', category: 'communication', defaultPrice: 8000 },
+  { name: 'SendGrid', category: 'communication', defaultPrice: 6000 },
+  { name: 'WhatsApp Business API', category: 'communication', defaultPrice: 15000 },
   // design
   { name: 'Figma', category: 'design' },
   { name: 'Adobe XD', category: 'design' },
   { name: 'Canva', category: 'design' },
   // monitoring
-  { name: 'Sentry', category: 'monitoring' },
-  { name: 'PostHog', category: 'monitoring' },
-  { name: 'LogRocket', category: 'monitoring' },
-  { name: 'Datadog', category: 'monitoring' },
+  { name: 'Sentry', category: 'monitoring', defaultPrice: 4000 },
+  { name: 'PostHog', category: 'monitoring', defaultPrice: 5000 },
+  { name: 'LogRocket', category: 'monitoring', defaultPrice: 4000 },
+  { name: 'Datadog', category: 'monitoring', defaultPrice: 8000 },
   // caching - Redis itself stays catalogued under `database` above (that's its
   // canonical entry; duplicating it here would flip categoryFor('Redis') to
   // 'caching' via the lookup map and silently re-categorize it on every
   // already-saved project that has Redis stored with category: 'database').
-  { name: 'Upstash Redis', category: 'caching' },
-  { name: 'Memcached', category: 'caching' },
+  { name: 'Upstash Redis', category: 'caching', defaultPrice: 5000 },
+  { name: 'Memcached', category: 'caching', defaultPrice: 5000 },
   // project-management
   { name: 'Trello', category: 'project-management' },
   { name: 'Asana', category: 'project-management' },
@@ -152,10 +163,27 @@ export const TECH_CATALOG: StackItem[] = [
   { name: 'Cypress', category: 'testing' },
   { name: 'Vitest', category: 'testing' },
   { name: 'Postman', category: 'testing' },
+  // cms
+  { name: 'WordPress', category: 'cms', defaultPrice: 10000 },
+  { name: 'Sanity', category: 'cms', defaultPrice: 8000 },
+  { name: 'Contentful', category: 'cms', defaultPrice: 8000 },
+  { name: 'Strapi', category: 'cms', defaultPrice: 10000 },
+  // automation
+  { name: 'Zapier', category: 'automation', defaultPrice: 6000 },
+  { name: 'n8n', category: 'automation', defaultPrice: 8000 },
+  { name: 'Make', category: 'automation', defaultPrice: 6000 },
 ]
 
 const LOOKUP = new Map(TECH_CATALOG.map((t) => [t.name.toLowerCase(), t]))
 
 export function categoryFor(name: string): StackCategory {
   return LOOKUP.get(name.toLowerCase())?.category ?? 'other'
+}
+
+// Standard integration fee for a tool, by name - looked up from the catalog
+// rather than trusted off a saved StackItem, so a price added/changed here
+// later applies to already-selected tools too, not just newly-picked ones.
+export function priceFor(item: StackItem): number {
+  if (typeof item.defaultPrice === 'number') return item.defaultPrice
+  return LOOKUP.get(item.name.toLowerCase())?.defaultPrice ?? 0
 }

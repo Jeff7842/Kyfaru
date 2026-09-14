@@ -23,8 +23,8 @@ interface Props {
 
 /**
  * Searchable tech-stack tag input. Pick from the catalog or add a custom tool
- * (double-space commits) and assign its category. Chips are grouped & coloured
- * by category, each with an inline remove button and an optional purpose note.
+ * (double-space commits) and assign its category. Selected chips render as a
+ * flat, colour-coded row with an inline remove button.
  */
 export default function StackInput({ label, value, onChange }: Props) {
   const [open, setOpen] = useState(false)
@@ -90,10 +90,6 @@ export default function StackInput({ label, value, onChange }: Props) {
     onChange(value.filter((v) => v.name !== name))
   }
 
-  function setNote(name: string, note: string) {
-    onChange(value.map((v) => (v.name === name ? { ...v, note } : v)))
-  }
-
   function addCustom() {
     const name = query.trim()
     if (!name) return
@@ -114,55 +110,32 @@ export default function StackInput({ label, value, onChange }: Props) {
     }
   }
 
-  // group selected chips by area for the "defined area" layout
-  const grouped = useMemo(() => {
-    const m = new Map<StackCategory, StackItem[]>()
-    for (const it of value) {
-      const cat = it.custom ? it.category : categoryFor(it.name)
-      if (!m.has(cat)) m.set(cat, [])
-      m.get(cat)!.push(it)
-    }
-    return m
-  }, [value])
-
   return (
     <div className="flex flex-col gap-1.5" ref={ref}>
       {label && <label className="text-xs font-medium text-zinc-700">{label}</label>}
 
-      {/* selected items grouped by area, each with an inline purpose note */}
+      {/* selected chips - flat, colour-coded by category */}
       {value.length > 0 && (
-        <div className="space-y-3">
-          {CATEGORIES.filter((c) => grouped.has(c)).map((cat) => (
-            <div key={cat}>
-              <span className="text-[10px] uppercase tracking-wide text-zinc-400">{CATEGORY_LABEL[cat]}</span>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {grouped.get(cat)!.map((it) => (
-                  <div
-                    key={it.name}
-                    className={cn('flex flex-col gap-1 pl-2 pr-1 py-1 rounded-md border text-xs font-medium min-w-[140px]', CATEGORY_COLOR[cat])}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <span>{it.name}</span>
-                      <button
-                        type="button"
-                        onClick={() => remove(it.name)}
-                        aria-label={`Remove ${it.name}`}
-                        className="rounded-full p-0.5 hover:bg-black/10 transition"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                    <input
-                      value={it.note ?? ''}
-                      onChange={(e) => setNote(it.name, e.target.value)}
-                      placeholder="Used for…"
-                      className="bg-white/60 border border-black/10 rounded px-1.5 py-0.5 text-[10px] font-normal text-zinc-700 placeholder:text-zinc-400 focus:outline-none focus:bg-white"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((it) => {
+            const cat = it.custom ? it.category : categoryFor(it.name)
+            return (
+              <span
+                key={it.name}
+                className={cn('inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-md border text-xs font-medium', CATEGORY_COLOR[cat])}
+              >
+                {it.name}
+                <button
+                  type="button"
+                  onClick={() => remove(it.name)}
+                  aria-label={`Remove ${it.name}`}
+                  className="rounded-full p-0.5 hover:bg-black/10 transition"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )
+          })}
         </div>
       )}
 

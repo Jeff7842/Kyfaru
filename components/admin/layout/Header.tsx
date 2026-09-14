@@ -16,7 +16,7 @@ export default function Header() {
   const logout = useLogout()
 
   return (
-    <header className="sticky top-0 z-30 h-16 px-4 md:px-6 flex items-center gap-3 backdrop-blur bg-[var(--kf-bg)]/85 border-b border-[var(--kf-border)]">
+    <header className="sticky top-0 z-30 h-16 px-4 md:px-6 flex items-center gap-3 backdrop-blur bg-[var(--kf-bg)]/85 border-b border-[var(--kf-border)] print:hidden">
       <button
         className="md:hidden p-2 -ml-2 rounded-md hover:bg-black/5"
         onClick={() => setMobileNavOpen(true)}

@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Loader2, Save } from 'lucide-react'
+import { Loader2, Save, ExternalLink } from 'lucide-react'
 import Drawer from '@/components/admin/shared/Drawer'
 import { TextField, TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
 import DatePicker from '@/components/admin/shared/DatePicker'
@@ -42,6 +43,7 @@ function toDateInput(d: Date | string | null | undefined): string {
 }
 
 export default function ProjectFormDrawer({ open, onClose, project, onSaved }: Props) {
+  const router = useRouter()
   const isEdit = !!project?.id
   const [form, setForm] = useState(EMPTY)
   const [stack, setStack] = useState<StackItem[]>([])
@@ -83,6 +85,7 @@ export default function ProjectFormDrawer({ open, onClose, project, onSaved }: P
 
   const isDirty = JSON.stringify({ form, stack }) !== snapshotRef.current
   const requestClose = useConfirmClose(isDirty, onClose)
+  const requestViewMore = useConfirmClose(isDirty, () => router.push(`/admin/projects/${project?.id}`))
 
   function set<K extends keyof typeof EMPTY>(k: K, v: string) {
     setForm((p) => ({ ...p, [k]: v }))
@@ -133,6 +136,11 @@ export default function ProjectFormDrawer({ open, onClose, project, onSaved }: P
           <button onClick={requestClose} className="flex-1 h-10 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition">
             Cancel
           </button>
+          {isEdit && (
+            <button onClick={requestViewMore} className="h-10 px-4 rounded-lg border border-zinc-200 text-sm text-zinc-700 hover:bg-zinc-50 transition flex items-center justify-center gap-2 whitespace-nowrap">
+              <ExternalLink className="w-4 h-4" /> View more
+            </button>
+          )}
           <button onClick={handleSave} disabled={saving} className="flex-1 h-10 rounded-lg bg-[var(--kf-green)] hover:bg-[var(--kf-green-dark)] text-white text-sm font-medium flex items-center justify-center gap-2 transition disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? 'Saving…' : 'Save'}

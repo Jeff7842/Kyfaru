@@ -56,14 +56,14 @@ export default function MobileNav() {
       <div
         aria-hidden
         className={cn(
-          'md:hidden fixed inset-0 bg-black/40 z-40 transition-opacity',
+          'md:hidden print:hidden fixed inset-0 bg-black/40 z-40 transition-opacity',
           mobileNavOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
         )}
         onClick={() => setMobileNavOpen(false)}
       />
       <aside
         className={cn(
-          'md:hidden fixed inset-y-0 left-0 w-[280px] z-50 flex flex-col text-zinc-200',
+          'md:hidden print:hidden fixed inset-y-0 left-0 w-[280px] z-50 flex flex-col text-zinc-200',
           'transition-transform duration-300',
           mobileNavOpen ? 'translate-x-0' : '-translate-x-full',
         )}

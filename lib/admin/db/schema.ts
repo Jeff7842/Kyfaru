@@ -55,6 +55,14 @@ export const invoiceStatusEnum = pgEnum('invoice_status', [
   'cancelled',
 ])
 
+export const quoteStatusEnum = pgEnum('quote_status', [
+  'draft',
+  'sent',
+  'accepted',
+  'declined',
+  'expired',
+])
+
 export const communicationChannelEnum = pgEnum('communication_channel', [
   'email',
   'whatsapp',
@@ -337,6 +345,52 @@ export const invoices = pgTable(
 )
 
 // ────────────────────────────────────────────────────────────
+// QUOTES
+// ────────────────────────────────────────────────────────────
+
+export const quoteNumberSeq = pgSequence('quote_number_seq', { startWith: 1 })
+
+// One quote per project - lazily created on first visit to the quote page
+// (see app/api/admin/projects/[id]/quote/route.ts), edited in place after.
+export const quotes = pgTable(
+  'quotes',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    quoteNumber: text('quote_number').notNull().unique(),
+    projectId: uuid('project_id')
+      .references(() => projects.id)
+      .notNull()
+      .unique(),
+    clientId: uuid('client_id')
+      .references(() => clients.id)
+      .notNull(),
+    status: quoteStatusEnum('status').notNull().default('draft'),
+    quoteDate: timestamp('quote_date').defaultNow().notNull(),
+    dueDate: timestamp('due_date'),
+    lineItems: jsonb('line_items').notNull(), // [{ description, quantity, unitPrice }]
+    taxRate: decimal('tax_rate', { precision: 5, scale: 2 }).default('0'), // percentage, e.g. 16.00
+    // System rows: computed from other data, not hand-typed like lineItems -
+    // each is on by default and can be toggled off per quote.
+    includeToolsRow: boolean('include_tools_row').notNull().default(true),
+    depositEnabled: boolean('deposit_enabled').notNull().default(true),
+    depositPercent: decimal('deposit_percent', { precision: 5, scale: 2 }).default('50'),
+    // First 30 days of maintenance are free after delivery; this is the
+    // recurring monthly fee that applies after that window, shown in the
+    // payment schedule (not part of the one-time subtotal/total above).
+    maintenanceEnabled: boolean('maintenance_enabled').notNull().default(true),
+    maintenanceFee: decimal('maintenance_fee', { precision: 12, scale: 2 }).default('0'),
+    termsAndConditions: text('terms_and_conditions'),
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    createdById: uuid('created_by_id').references(() => users.id),
+  },
+  (t) => [
+    index('quotes_client_idx').on(t.clientId),
+  ],
+)
+
+// ────────────────────────────────────────────────────────────
 // EXPENSES
 // ────────────────────────────────────────────────────────────
 
@@ -530,6 +584,8 @@ export type Project = typeof projects.$inferSelect
 export type NewProject = typeof projects.$inferInsert
 export type Invoice = typeof invoices.$inferSelect
 export type NewInvoice = typeof invoices.$inferInsert
+export type Quote = typeof quotes.$inferSelect
+export type NewQuote = typeof quotes.$inferInsert
 export type Expense = typeof expenses.$inferSelect
 export type NewExpense = typeof expenses.$inferInsert
 export type CalendarEvent = typeof calendarEvents.$inferSelect
@@ -600,6 +656,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   milestones: many(projectMilestones),
   invoices: many(invoices),
+  quote: one(quotes, { fields: [projects.id], references: [quotes.projectId] }),
   expenses: many(expenses),
   files: many(projectFiles),
   calendarEvents: many(calendarEvents),
@@ -619,6 +676,16 @@ export const invoicesRelations = relations(invoices, ({ one }) => ({
     fields: [invoices.createdById],
     references: [users.id],
     relationName: 'invoiceCreatedBy',
+  }),
+}))
+
+export const quotesRelations = relations(quotes, ({ one }) => ({
+  project: one(projects, { fields: [quotes.projectId], references: [projects.id] }),
+  client: one(clients, { fields: [quotes.clientId], references: [clients.id] }),
+  createdBy: one(users, {
+    fields: [quotes.createdById],
+    references: [users.id],
+    relationName: 'quoteCreatedBy',
   }),
 }))
 

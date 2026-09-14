@@ -68,7 +68,7 @@ export default function Sidebar() {
   return (
     <aside
       className={cn(
-        'hidden md:flex h-screen sticky top-0 flex-col text-[var(--kf-sb-text)]',
+        'hidden md:flex h-screen sticky top-0 flex-col text-[var(--kf-sb-text)] print:hidden',
         'transition-[width] duration-300 ease-out',
         sidebarCollapsed ? 'w-[72px]' : 'w-[260px]',
       )}

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2, Plus, FileText, FileSignature, AlertTriangle } from 'lucide-react'
+import { Pencil, Trash2, Plus, FileText, FileSignature, Receipt, AlertTriangle } from 'lucide-react'
 import { cn, formatDate } from '@/lib/admin/utils'
 import StatusBadge from '@/components/admin/shared/StatusBadge'
 import DataTable, { type Column } from '@/components/admin/shared/DataTable'
@@ -34,6 +34,7 @@ export default function ProjectsTable() {
   const qc = useQueryClient()
   const confirm = useConfirm()
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [editing, setEditing] = useState<Row | null>(null)
 
   const refresh = () => qc.invalidateQueries({ queryKey: [QUERY_KEY] })
 
@@ -78,7 +79,7 @@ export default function ProjectsTable() {
         onRowClick={(p) => (window.location.href = `/admin/projects/${p.id}`)}
         emptyLabel="No projects found."
         toolbar={
-          <button onClick={() => setDrawerOpen(true)} className="kf-btn-primary flex items-center gap-1.5 whitespace-nowrap">
+          <button onClick={() => { setEditing(null); setDrawerOpen(true) }} className="kf-btn-primary flex items-center gap-1.5 whitespace-nowrap">
             <Plus className="w-4 h-4" /> New Project
           </button>
         }
@@ -86,6 +87,14 @@ export default function ProjectsTable() {
           const complete = isRequirementsComplete(p.scopeDocument as ProjectRequirementsDoc | null)
           return (
             <>
+              <button
+                onClick={() => (window.location.href = `/admin/projects/${p.id}/quote`)}
+                aria-label="Quote generator"
+                title="Quote generator"
+                className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition"
+              >
+                <Receipt className="w-3.5 h-3.5" />
+              </button>
               <button
                 onClick={() => complete && downloadDoc('scope-pdf', p, 'Scope of Work')}
                 disabled={!complete}
@@ -109,7 +118,7 @@ export default function ProjectsTable() {
                   <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" />
                 </span>
               )}
-              <button onClick={() => (window.location.href = `/admin/projects/${p.id}`)} aria-label="Edit" className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition">
+              <button onClick={() => { setEditing(p); setDrawerOpen(true) }} aria-label="Edit" className="p-1.5 rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-800 transition">
                 <Pencil className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => handleDelete(p)} aria-label="Delete" className="p-1.5 rounded-md text-zinc-500 hover:bg-red-50 hover:text-red-600 transition">
@@ -119,7 +128,7 @@ export default function ProjectsTable() {
           )
         }}
       />
-      <ProjectFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSaved={refresh} />
+      <ProjectFormDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} project={editing} onSaved={refresh} />
     </>
   )
 }
