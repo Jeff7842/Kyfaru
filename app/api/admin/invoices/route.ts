@@ -4,7 +4,7 @@ import { db } from '@/lib/admin/db'
 import { invoices, clients } from '@/lib/admin/db/schema'
 import { requireRole } from '@/lib/admin/permissions'
 import { logAudit } from '@/lib/admin/audit'
-import { and, count, desc, eq, ilike, or } from 'drizzle-orm'
+import { count, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import type { Role } from '@/lib/admin/permissions'
 
 export async function GET(req: NextRequest) {
@@ -58,8 +58,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid paidAt date' }, { status: 400 })
   }
 
-  const [{ value: existingCount }] = await db.select({ value: count() }).from(invoices)
-  const invoiceNumber = body.invoiceNumber?.trim() || `KY-${String((existingCount ?? 0) + 1).padStart(5, '0')}`
+  let invoiceNumber = body.invoiceNumber?.trim()
+  if (!invoiceNumber) {
+    // nextval() is atomic under concurrency, unlike the old count(*)+1 scheme -
+    // which could collide with the unique constraint on invoiceNumber when two
+    // requests raced, or when any invoice was ever created with a manual number.
+    const seq = await db.execute<{ n: number }>(sql`SELECT nextval('invoice_number_seq') AS n`)
+    invoiceNumber = `KY-${String(seq.rows[0].n).padStart(5, '0')}`
+  }
 
   const [invoice] = await db
     .insert(invoices)

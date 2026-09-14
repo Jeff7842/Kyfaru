@@ -3,6 +3,7 @@
 // project.description misuse), and the SOW's F/G/H/J/K sections.
 
 import { z } from 'zod'
+import type { StackCategory, StackItem } from '@/lib/admin/constants/tech-catalog'
 
 export type ProjectMode = 'off_the_shelf' | 'custom'
 
@@ -28,7 +29,9 @@ export interface ProjectRequirementsDoc {
   payments: { milestones: PaymentMilestone[]; items: PricedItem[] }
   storage: string
   communication: string[]
-  tools: string[]
+  // Reuses the same tech-catalog StackInput picker as the project drawer's
+  // tech stack field - categorized, searchable, custom-addable, per-item notes.
+  tools: StackItem[]
   hosting: { provider: string; cost: string }
   domain: { name: string; cost: string }
   security: { measures: string[]; backupSchedule: string }
@@ -64,6 +67,16 @@ export function emptyProjectRequirements(): ProjectRequirementsDoc {
 const pricedItemSchema = z.object({ item: z.string(), price: z.string() })
 const paymentMilestoneSchema = z.object({ label: z.string(), amount: z.string(), dueNote: z.string().optional() })
 const pageItemSchema = z.object({ type: z.string(), label: z.string() })
+// Category is validated as a plain string (cast to StackCategory), not a fixed
+// enum - tech-catalog.ts's StackCategory list changes independently of this
+// schema, and StackInput's own chip rendering degrades harmlessly (blank
+// label/default colour) on an unrecognised value rather than crashing.
+const stackItemSchema = z.object({
+  name: z.string(),
+  category: z.string() as z.ZodType<StackCategory>,
+  custom: z.boolean().optional(),
+  note: z.string().optional(),
+})
 
 export const projectRequirementsSchema = z.object({
   projectMode: z.enum(['off_the_shelf', 'custom']),
@@ -71,7 +84,7 @@ export const projectRequirementsSchema = z.object({
   payments: z.object({ milestones: z.array(paymentMilestoneSchema), items: z.array(pricedItemSchema) }),
   storage: z.string(),
   communication: z.array(z.string()),
-  tools: z.array(z.string()),
+  tools: z.array(stackItemSchema),
   hosting: z.object({ provider: z.string(), cost: z.string() }),
   domain: z.object({ name: z.string(), cost: z.string() }),
   security: z.object({ measures: z.array(z.string()), backupSchedule: z.string() }),

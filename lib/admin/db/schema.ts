@@ -295,6 +295,12 @@ export const projectMilestones = pgTable(
 // INVOICES
 // ────────────────────────────────────────────────────────────
 
+// Atomic invoice-number sequence - `count(*)+1` isn't race-safe under
+// concurrent creation and can collide with the unique constraint below;
+// starts at 7 to continue past the 6 invoices (KY-00001..KY-00006) already
+// numbered under the old scheme.
+export const invoiceNumberSeq = pgSequence('invoice_number_seq', { startWith: 7 })
+
 export const invoices = pgTable(
   'invoices',
   {

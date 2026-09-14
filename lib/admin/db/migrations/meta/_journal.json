@@ -50,6 +50,13 @@
       "when": 1789313592187,
       "tag": "0006_funny_vulture",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1789385324354,
+      "tag": "0007_regular_iron_fist",
+      "breakpoints": true
     }
   ]
 }

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import HeroSection from '@/components/admin/layout/HeroSection'
 import StatusBadge from '@/components/admin/shared/StatusBadge'
 import { TextField, TextAreaField, SelectField } from '@/components/admin/shared/Form/Field'
+import StackInput from '@/components/admin/shared/StackInput'
 import VerticalStepper, { type ActivityGroup } from '@/components/admin/projects/VerticalStepper'
 import { kfToast } from '@/lib/admin/toast'
 import { useConfirmClose } from '@/hooks/useConfirmClose'
@@ -147,17 +148,20 @@ export default function ProjectDetailsView({ projectId, initialProject }: Props)
         />
       </div>
 
-      <div className="kf-card rounded-2xl space-y-5">
-        <h3 className="text-sm font-semibold text-[var(--kf-text)]">Payments</h3>
-        <MilestonesEditor
-          values={form.payments.milestones}
-          onChange={(milestones) => update('payments', { ...form.payments, milestones })}
-        />
-        <PricedItemsEditor
-          label="Priced items"
-          values={form.payments.items}
-          onChange={(items) => update('payments', { ...form.payments, items })}
-        />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="kf-card rounded-2xl">
+          <MilestonesEditor
+            values={form.payments.milestones}
+            onChange={(milestones) => update('payments', { ...form.payments, milestones })}
+          />
+        </div>
+        <div className="kf-card rounded-2xl">
+          <PricedItemsEditor
+            label="Priced items"
+            values={form.payments.items}
+            onChange={(items) => update('payments', { ...form.payments, items })}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -208,10 +212,9 @@ export default function ProjectDetailsView({ projectId, initialProject }: Props)
           />
         </div>
         <div className={cn('kf-card rounded-2xl transition', deemphasizeCustomFields && 'opacity-60')}>
-          <StringListEditor
+          <StackInput
             label="Tools"
-            placeholder="e.g. Figma"
-            values={form.tools}
+            value={form.tools}
             onChange={(v) => update('tools', v)}
           />
         </div>

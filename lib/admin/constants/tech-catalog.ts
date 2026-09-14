@@ -14,6 +14,8 @@ export type StackCategory =
   | 'design'
   | 'monitoring'
   | 'caching'
+  | 'project-management'
+  | 'testing'
   | 'other'
 
 export interface StackItem {
@@ -37,6 +39,8 @@ export const CATEGORY_LABEL: Record<StackCategory, string> = {
   design: 'Design',
   monitoring: 'Monitoring',
   caching: 'Caching',
+  'project-management': 'Project Management',
+  testing: 'Testing / QA',
   other: 'Other',
 }
 
@@ -55,6 +59,8 @@ export const CATEGORY_COLOR: Record<StackCategory, string> = {
   design: 'bg-pink-50 border-pink-300 text-pink-700',
   monitoring: 'bg-indigo-50 border-indigo-300 text-indigo-700',
   caching: 'bg-teal-50 border-teal-300 text-teal-700',
+  'project-management': 'bg-purple-50 border-purple-300 text-purple-700',
+  testing: 'bg-rose-50 border-rose-300 text-rose-700',
   other: 'bg-zinc-100 border-zinc-300 text-zinc-700',
 }
 
@@ -134,6 +140,18 @@ export const TECH_CATALOG: StackItem[] = [
   // already-saved project that has Redis stored with category: 'database').
   { name: 'Upstash Redis', category: 'caching' },
   { name: 'Memcached', category: 'caching' },
+  // project-management
+  { name: 'Trello', category: 'project-management' },
+  { name: 'Asana', category: 'project-management' },
+  { name: 'Notion', category: 'project-management' },
+  { name: 'Linear', category: 'project-management' },
+  { name: 'ClickUp', category: 'project-management' },
+  { name: 'Slack', category: 'project-management' },
+  // testing
+  { name: 'Playwright', category: 'testing' },
+  { name: 'Cypress', category: 'testing' },
+  { name: 'Vitest', category: 'testing' },
+  { name: 'Postman', category: 'testing' },
 ]
 
 const LOOKUP = new Map(TECH_CATALOG.map((t) => [t.name.toLowerCase(), t]))
